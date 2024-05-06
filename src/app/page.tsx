@@ -9,12 +9,7 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-4">
       <div>
-        <Image
-          src="https://www.thebestf1.es/wp-content/uploads/2017/11/F1-Logo-2018-Presentacion-750x354.jpg"
-          alt="Logo"
-          width={300}
-          height={150}
-        />
+        <Image src="/f1logo.png" alt="Logo" width={300} height={150} />
       </div>
       <span>
         First version of F1 stats, that you can only see the races from 2024.
