@@ -1,6 +1,5 @@
 import { getDriver } from "./driver";
 export const getWinnerByRace = async (sessionKey: string) => {
-  console.log("GET WINNER");
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const SERVICE = "position";
   const QUERIES = `?session_key=${sessionKey}&position<=1`;

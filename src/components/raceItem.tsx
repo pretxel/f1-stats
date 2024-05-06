@@ -13,7 +13,6 @@ export default async function RaceItem(props: RaceItemType) {
   const urlImage = findFlagUrlByIso3Code(props.country_code);
 
   const winner = await getWinnerByRace(props.session_key);
-  console.log(winner);
 
   return (
     <>
