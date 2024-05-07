@@ -1,10 +1,12 @@
 import Image from "next/image";
+
 import { RaceItemType } from "@/types/RaceItemType";
 import dayjs from "dayjs";
 import { findFlagUrlByIso3Code } from "country-flags-svg";
 const localizedFormat = require("dayjs/plugin/localizedFormat");
 dayjs.extend(localizedFormat);
 import { getWinnerByRace } from "@/services/winnerByRace";
+import ButtonRaceItem from "./buttonItem";
 
 const urlFlagUnknow =
   "https://upload.wikimedia.org/wikipedia/commons/2/2e/Unknown_flag_-_European_version.png";
@@ -58,6 +60,13 @@ export default async function RaceItem(props: RaceItemType) {
           <dd className="flex items-start gap-x-2">
             <div className="font-medium text-gray-900">
               {winner.driver.full_name}
+            </div>
+          </dd>
+        </div>
+        <div className="flex justify-between gap-x-4 py-3">
+          <dd className="flex items-start gap-x-2">
+            <div className="font-medium text-gray-900">
+              <ButtonRaceItem session_key={props.session_key} />
             </div>
           </dd>
         </div>

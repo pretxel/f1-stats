@@ -11,7 +11,7 @@ export default async function Home() {
       <div>
         <Image src="/f1logo.png" alt="Logo" width={300} height={150} />
       </div>
-      <span>
+      <span className="text-black">
         First version of F1 stats, that you can only see the races from 2024.
       </span>
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
@@ -39,7 +39,7 @@ export default async function Home() {
             ))}
         </ul>
       </div>
-      <footer>
+      <footer className="text-black">
         <p>Powered by @pretxelcom v1.0.0</p>
       </footer>
     </main>
