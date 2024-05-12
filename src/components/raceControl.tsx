@@ -26,7 +26,7 @@ export default async function RaceControl(props: RaceControlProp) {
 
   const timeLineAdapted = adaptRaceControToTimeline(raceControl);
   return (
-    <div className="flow-root">
+    <div className="flow-root pt-10">
       <ul role="list" className="-mb-8">
         {timeLineAdapted.map((event, eventIdx) => (
           <li key={event.id}>

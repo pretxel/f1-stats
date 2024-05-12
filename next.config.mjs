@@ -10,6 +10,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "www.thebestf1.es",
       },
+      {
+        protocol: "https",
+        hostname: "www.formula1.com",
+      },
     ],
   },
 };

@@ -1,20 +1,13 @@
 import RaceItem from "@/components/raceItem";
 import { getRaces } from "@/services/races";
 import { RaceItemType } from "@/types/RaceItemType";
-import Image from "next/image";
 
 export default async function Home() {
   const races = await getRaces();
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-4">
-      <div>
-        <Image src="/f1logo.png" alt="Logo" width={300} height={150} />
-      </div>
-      <span className="text-black">
-        First version of F1 stats, that you can only see the races from 2024.
-      </span>
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
+    <section>
+      <div className="z-10 w-full p-10 items-center font-mono text-sm lg:flex">
         <ul
           role="list"
           className="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3 xl:gap-x-8"
@@ -39,9 +32,6 @@ export default async function Home() {
             ))}
         </ul>
       </div>
-      <footer className="text-black">
-        <p>Powered by @pretxelcom v1.0.0</p>
-      </footer>
-    </main>
+    </section>
   );
 }

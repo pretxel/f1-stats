@@ -5,43 +5,52 @@ const tabs = [
   { name: "Race Control", href: "#" },
   { name: "Pit stops", href: "#" },
 ];
+
 export default function Tabs({ selectedTab }: { selectedTab: number }) {
   const router = useRouter();
   return (
     <div>
-      <div className="hidden sm:block">
-        <nav
-          className="isolate flex divide-x divide-gray-200 rounded-lg shadow"
-          aria-label="Tabs"
+      <div className="sm:hidden">
+        <label htmlFor="tabs" className="sr-only">
+          Select a tab
+        </label>
+
+        <select
+          id="tabs"
+          name="tabs"
+          className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+          defaultValue={tabs[selectedTab - 1].name}
+          test-id={selectedTab}
+          onChange={(e) => router.push("?selectedTab=" + e.target.value)}
         >
           {tabs.map((tab, tabIdx) => (
-            <a
-              key={tab.name}
-              href={tab.href}
-              className={classNames(
-                selectedTab === tabIdx + 1
-                  ? "text-gray-900"
-                  : "text-gray-500 hover:text-gray-700",
-                tabIdx === 0 ? "rounded-l-lg" : "",
-                tabIdx === tabs.length - 1 ? "rounded-r-lg" : "",
-                "group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10"
-              )}
-              aria-current={selectedTab === tabIdx + 1 ? "page" : undefined}
-              onClick={() => router.push("?selectedTab=" + (tabIdx + 1))}
-            >
-              <span>{tab.name}</span>
-              <span
-                aria-hidden="true"
+            <option key={tab.name} value={tabIdx + 1}>
+              {tab.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="hidden sm:block">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex" aria-label="Tabs">
+            {tabs.map((tab, tabIdx) => (
+              <a
+                key={tab.name}
+                href={tab.href}
                 className={classNames(
                   selectedTab === tabIdx + 1
-                    ? "bg-indigo-500"
-                    : "bg-transparent",
-                  "absolute inset-x-0 bottom-0 h-0.5"
+                    ? "border-indigo-500 text-indigo-600"
+                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                  "w-1/4 border-b-2 py-4 px-1 text-center text-sm font-medium"
                 )}
-              />
-            </a>
-          ))}
-        </nav>
+                aria-current={selectedTab === tabIdx + 1 ? "page" : undefined}
+                onClick={() => router.push("?selectedTab=" + (tabIdx + 1))}
+              >
+                {tab.name}
+              </a>
+            ))}
+          </nav>
+        </div>
       </div>
     </div>
   );
