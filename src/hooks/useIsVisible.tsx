@@ -1,7 +1,5 @@
 import { useEffect, useState, Ref } from "react";
-export function useIsVisible(
-  ref: Ref<HTMLLIElement> & { current: HTMLLIElement }
-) {
+export function useIsVisible(ref: Ref<HTMLLIElement>) {
   const [isIntersecting, setIntersecting] = useState(false);
 
   useEffect(() => {
