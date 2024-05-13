@@ -1,5 +1,5 @@
 import { useEffect, useState, Ref } from "react";
-export function useIsVisible(ref: Ref<HTMLLIElement>) {
+export function useIsVisible(ref: Ref<HTMLLIElement> & { current: any }) {
   const [isIntersecting, setIntersecting] = useState(false);
 
   useEffect(() => {
@@ -7,7 +7,10 @@ export function useIsVisible(ref: Ref<HTMLLIElement>) {
       setIntersecting(entry.isIntersecting);
     });
 
-    observer.observe(ref?.current);
+    if (ref && ref?.current) {
+      observer.observe(ref?.current);
+    }
+
     return () => {
       observer.disconnect();
     };
