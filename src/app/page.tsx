@@ -16,7 +16,7 @@ export default async function Home() {
             races.map((race: RaceItemType) => (
               <li
                 key={race.session_key}
-                className="overflow-hidden rounded-xl border border-gray-200"
+                className="transition-opacity ease-in duration-700 opacity-100 overflow-hidden rounded-xl border border-gray-200"
               >
                 <RaceItem
                   key={race.session_key}
