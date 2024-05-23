@@ -1,6 +1,7 @@
 import RaceItem from "@/components/raceItem";
 import { getRaces } from "@/services/races";
 import { RaceItemType } from "@/types/RaceItemType";
+export const revalidate = 3600;
 
 export default async function Home() {
   const races = await getRaces();
