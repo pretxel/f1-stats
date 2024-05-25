@@ -1,29 +1,16 @@
 import { getRaceControlBySession } from "@/services/raceControl";
-import { RaceControlTypeItem } from "@/types/RaceControlItem";
-import dayjs from "dayjs";
-const localizedFormat = require("dayjs/plugin/localizedFormat");
-dayjs.extend(localizedFormat);
 import RaceControlItem from "./raceControlItem";
-
-const adaptRaceControToTimeline = (raceControl: RaceControlTypeItem[]) => {
-  return raceControl.map((race, index) => ({
-    id: index,
-    content: race.message,
-    date: dayjs(race.date).format("LLLL"),
-    datetime: race.date,
-    href: "#",
-    iconBackground: "bg-gray-400",
-  }));
-};
+import { orderRaceControl } from "@/utils/orderRaceControl";
+import adaptRaceControToTimeline from "@/utils/adaptRaceControToTimeline";
 
 export type RaceControlProp = {
   session_key: string;
 };
 
 export default async function RaceControl(props: RaceControlProp) {
-  const raceControl = await getRaceControlBySession(props.session_key);
-
-  const timeLineAdapted = adaptRaceControToTimeline(raceControl);
+  const raceControlRequested = await getRaceControlBySession(props.session_key);
+  const raceControlSorted = orderRaceControl(raceControlRequested);
+  const timeLineAdapted = adaptRaceControToTimeline(raceControlSorted);
 
   return (
     <div className="flow-root pt-10">

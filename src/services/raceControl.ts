@@ -1,4 +1,7 @@
-export const getRaceControlBySession = async (sessionKey: string) => {
+import { RaceControlTypeItem } from "@/types/RaceControlItem";
+export const getRaceControlBySession = async (
+  sessionKey: string
+): Promise<RaceControlTypeItem[]> => {
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const SERVICE = "race_control";
   const QUERIES = `?session_key=${sessionKey}`;
