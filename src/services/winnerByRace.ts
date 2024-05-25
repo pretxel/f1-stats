@@ -6,7 +6,7 @@ export const getWinnerByRace = async (sessionKey: string) => {
   let racesData = [];
   try {
     const response = await fetch(API_ENDPOINT + SERVICE + QUERIES, {
-      cache: "no-store",
+      next: { revalidate: 3600, tags: ["winners"] },
     });
     racesData = await response.json();
   } catch (error) {
