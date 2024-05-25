@@ -6,9 +6,7 @@ export const getPitstops = async (sessionKey: string) => {
   const QUERIES = `?session_key=${sessionKey}`;
   let raceControlData = [];
   try {
-    const response = await fetch(API_ENDPOINT + SERVICE + QUERIES, {
-      cache: "force-cache",
-    });
+    const response = await fetch(API_ENDPOINT + SERVICE + QUERIES);
     raceControlData = await response.json();
   } catch (error) {
     console.error(error);
