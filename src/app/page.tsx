@@ -1,6 +1,7 @@
 import RaceItem from "@/components/raceItem";
 import { getRaces } from "@/services/races";
 import { RaceItemType } from "@/types/RaceItemType";
+
 export const revalidate = 3600;
 
 export default async function Home() {
@@ -27,6 +28,7 @@ export default async function Home() {
                   date_end={race.date_end}
                   location={race.location}
                   session_key={race.session_key}
+                  session_name={race.session_name}
                   country_code={race.country_code}
                 />
               </li>

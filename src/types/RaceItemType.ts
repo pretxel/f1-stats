@@ -6,4 +6,5 @@ export type RaceItemType = {
   country_name: string;
   country_code: string;
   circuit_short_name: string;
+  session_name: string;
 };
