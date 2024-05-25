@@ -5,7 +5,9 @@ export const getWinnerByRace = async (sessionKey: string) => {
   const QUERIES = `?session_key=${sessionKey}&position<=1`;
   let racesData = [];
   try {
-    const response = await fetch(API_ENDPOINT + SERVICE + QUERIES);
+    const response = await fetch(API_ENDPOINT + SERVICE + QUERIES, {
+      cache: "no-cache",
+    });
     racesData = await response.json();
   } catch (error) {
     console.error(error);
