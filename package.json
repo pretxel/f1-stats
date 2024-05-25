@@ -16,9 +16,9 @@
     "@vercel/toolbar": "^0.1.15",
     "country-flags-svg": "2.0.0-beta.1",
     "dayjs": "^1.11.11",
-    "next": "14.2.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "next": "15.0.0-rc.0",
+    "react": "19.0.0-rc-935180c7e0-20240524",
+    "react-dom": "19.0.0-rc-935180c7e0-20240524"
   },
   "devDependencies": {
     "@swc/core": "^1.5.7",

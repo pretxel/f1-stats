@@ -3,7 +3,9 @@ export const getWinnerByRace = async (sessionKey: string) => {
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const SERVICE = "position";
   const QUERIES = `?session_key=${sessionKey}&position<=1`;
-  const response = await fetch(API_ENDPOINT + SERVICE + QUERIES);
+  const response = await fetch(API_ENDPOINT + SERVICE + QUERIES, {
+    cache: "force-cache",
+  });
   const racesData = await response.json();
   const winnerDriver = racesData.at(-1);
 
