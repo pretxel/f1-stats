@@ -94,7 +94,8 @@ export default async function RaceItem(props: RaceItemType) {
           <dt className="text-gray-500">Winner</dt>
           <dd className="flex items-start gap-x-2">
             <div className="font-medium text-gray-900">
-              {winner.driver && winner.driver.full_name}
+              {!winner && "No winner yet"}
+              {winner && winner.driver.full_name}
             </div>
           </dd>
         </div>

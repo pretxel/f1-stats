@@ -15,11 +15,10 @@ export const getWinnerByRace = async (sessionKey: string) => {
 
   const winnerDriver = racesData.at(-1);
 
-  if (!winnerDriver) {
-    throw new Error("No winner found");
+  let driver = null;
+  if (winnerDriver) {
+    driver = await getDriver(winnerDriver.driver_number);
   }
-
-  const driver = await getDriver(winnerDriver.driver_number);
 
   return {
     ...winnerDriver,
