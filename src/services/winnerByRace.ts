@@ -3,10 +3,16 @@ export const getWinnerByRace = async (sessionKey: string) => {
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const SERVICE = "position";
   const QUERIES = `?session_key=${sessionKey}&position<=1`;
-  const response = await fetch(API_ENDPOINT + SERVICE + QUERIES, {
-    cache: "force-cache",
-  });
-  const racesData = await response.json();
+  let racesData = [];
+  try {
+    const response = await fetch(API_ENDPOINT + SERVICE + QUERIES, {
+      cache: "force-cache",
+    });
+    racesData = await response.json();
+  } catch (error) {
+    console.error(error);
+  }
+
   const winnerDriver = racesData.at(-1);
 
   if (!winnerDriver) {
