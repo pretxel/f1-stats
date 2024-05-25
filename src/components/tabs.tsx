@@ -1,6 +1,8 @@
 "use client";
 import { classNames } from "@/utils/classNames";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+
 const tabs = [
   { name: "Race Control", href: "#" },
   { name: "Pit stops", href: "#" },
@@ -34,9 +36,9 @@ export default function Tabs({ selectedTab }: { selectedTab: number }) {
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex" aria-label="Tabs">
             {tabs.map((tab, tabIdx) => (
-              <a
+              <Link
                 key={tab.name}
-                href={tab.href}
+                href={`?selectedTab=${tabIdx + 1}`}
                 className={classNames(
                   selectedTab === tabIdx + 1
                     ? "border-indigo-500 text-indigo-600"
@@ -44,10 +46,9 @@ export default function Tabs({ selectedTab }: { selectedTab: number }) {
                   "w-1/4 border-b-2 py-4 px-1 text-center text-sm font-medium"
                 )}
                 aria-current={selectedTab === tabIdx + 1 ? "page" : undefined}
-                onClick={() => router.push("?selectedTab=" + (tabIdx + 1))}
               >
                 {tab.name}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>
