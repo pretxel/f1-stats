@@ -9,9 +9,6 @@ import LiveItem from "./liveItem";
 import ButtonRaceItem from "./buttonItem";
 import isLiveSessionNow from "@/utils/isLiveSessionNow";
 
-const urlFlagUnknow =
-  "https://upload.wikimedia.org/wikipedia/commons/2/2e/Unknown_flag_-_European_version.png";
-
 export default async function RaceItem(props: RaceItemType) {
   const urlImage = findFlagUrlByIso3Code(props.country_code);
 
@@ -21,7 +18,7 @@ export default async function RaceItem(props: RaceItemType) {
     <>
       <div className="flex items-center gap-x-4 border-b border-gray-900/5 bg-gray-50 p-6">
         <Image
-          src={urlImage !== "" ? urlImage : urlFlagUnknow}
+          src={urlImage !== "" ? urlImage : "/European_version.png"}
           alt={props.circuit_short_name}
           width={50}
           height={32}

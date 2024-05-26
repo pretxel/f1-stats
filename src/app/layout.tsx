@@ -29,7 +29,13 @@ export default function RootLayout({
         <section className="flex flex-col items-center">
           <div>
             <Link href={"/"}>
-              <Image src="/f1logo.png" alt="Logo" width={300} height={150} />
+              <Image
+                src="/f1logo.png"
+                alt="Logo"
+                width={300}
+                height={150}
+                priority={false}
+              />
             </Link>
           </div>
           <span className="text-black">
