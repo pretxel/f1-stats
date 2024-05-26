@@ -1,36 +1,16 @@
 import Image from "next/image";
-
 import { RaceItemType } from "@/types/RaceItemType";
 import dayjs from "dayjs";
 import { findFlagUrlByIso3Code } from "country-flags-svg";
 const localizedFormat = require("dayjs/plugin/localizedFormat");
-const isBetween = require("dayjs/plugin/isBetween");
-dayjs.extend(isBetween);
 dayjs.extend(localizedFormat);
 import { getWinnerByRace } from "@/services/winnerByRace";
+import LiveItem from "./liveItem";
 import ButtonRaceItem from "./buttonItem";
+import isLiveSessionNow from "@/utils/isLiveSessionNow";
 
 const urlFlagUnknow =
   "https://upload.wikimedia.org/wikipedia/commons/2/2e/Unknown_flag_-_European_version.png";
-
-const isSessionNow = (sessionStartDate: Date, sessionEndDate: Date) => {
-  const now = new Date();
-
-  const daySession = sessionStartDate.getDate();
-  const monthSession = sessionStartDate.getMonth();
-  const dayNow = now.getDate();
-  const monthNow = now.getMonth();
-
-  if (
-    daySession === dayNow &&
-    monthSession === monthNow &&
-    dayjs(now).isBetween(dayjs(sessionStartDate), dayjs(sessionEndDate))
-  ) {
-    return true;
-  }
-
-  return false;
-};
 
 export default async function RaceItem(props: RaceItemType) {
   const urlImage = findFlagUrlByIso3Code(props.country_code);
@@ -55,15 +35,10 @@ export default async function RaceItem(props: RaceItemType) {
           <div className=" text-black p-4">{props.session_name}</div>
         </div>
 
-        {isSessionNow(new Date(props.date_start), new Date(props.date_end)) && (
-          <div className="w-full flex justify-end">
-            <span className="relative top-0 right-0 flex h-4 w-4">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
-            </span>
-            <span className="text-xs pl-2">Live</span>
-          </div>
-        )}
+        {isLiveSessionNow(
+          new Date(props.date_start),
+          new Date(props.date_end)
+        ) && <LiveItem />}
       </div>
       <dl className="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm leading-6">
         <div className="flex justify-between gap-x-4 py-3">

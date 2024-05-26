@@ -1,6 +1,7 @@
 "use client";
 import { classNames } from "@/utils/classNames";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const tabs = [
@@ -8,8 +9,10 @@ const tabs = [
   { name: "Pit stops", href: "#" },
 ];
 
-export default function Tabs({ selectedTab }: { selectedTab: number }) {
+export default function Tabs() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedTab = parseInt(searchParams.get("selectedTab") || "1");
   return (
     <div>
       <div className="sm:hidden">

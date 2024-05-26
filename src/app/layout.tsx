@@ -26,16 +26,20 @@ export default function RootLayout({
           " flex min-h-screen flex-col items-center justify-between p-4"
         }
       >
-        <div>
-          <Link href={"/"}>
-            <Image src="/f1logo.png" alt="Logo" width={300} height={150} />
-          </Link>
-        </div>
-        <span className="text-black">
-          First version of F1 stats, that you can only see the races from 2024.
-        </span>
-        <main className="m-5 w-full">{children}</main>
-        <footer className="text-black">
+        <section className="flex flex-col items-center">
+          <div>
+            <Link href={"/"}>
+              <Image src="/f1logo.png" alt="Logo" width={300} height={150} />
+            </Link>
+          </div>
+          <span className="text-black">
+            First version of F1 stats, that you can only see the races from
+            2024.
+          </span>
+        </section>
+
+        <main className="m-5 w-full h-screen">{children}</main>
+        <footer className="fixed bottom-0  text-black">
           <p>Powered by @pretxelcom v1.0.0</p>
         </footer>
         {shouldInjectToolbar && <VercelToolbar />}

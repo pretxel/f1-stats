@@ -1,6 +1,18 @@
-import Tabs from "@/components/tabs";
+import { Suspense } from "react";
 import RaceControl from "@/components/raceControl";
 import PitStops from "@/components/pitstops";
+import { getRaces } from "@/services/races";
+import LiveItem from "@/components/liveItem";
+import isLiveSessionNow from "@/utils/isLiveSessionNow";
+import { LoadingSkeleton } from "@/utils/skeletons";
+
+interface TabJSXElement {
+  [key: number]: JSX.Element;
+}
+const Tabs = (sessionKey: string, liveMode: boolean): TabJSXElement => ({
+  1: <RaceControl session_key={sessionKey} liveMode={liveMode} />,
+  2: <PitStops session_key={sessionKey} liveMode={liveMode} />,
+});
 
 export default async function Session({
   params,
@@ -12,13 +24,20 @@ export default async function Session({
   const selectedTab = searchParams?.selectedTab
     ? parseInt(searchParams?.selectedTab as string)
     : 1;
+  const race = await getRaces(params.id);
+  const isLiveMode = isLiveSessionNow(
+    new Date(race.date_start),
+    new Date(race.date_end)
+  );
+
   return (
     <section>
       <div className="z-10 w-full items-center justify-between font-mono text-sm p-10">
-        <Tabs selectedTab={selectedTab} />
+        {isLiveMode && <LiveItem />}
 
-        {selectedTab === 1 && <RaceControl session_key={params.id} />}
-        {selectedTab === 2 && <PitStops session_key={params.id} />}
+        <Suspense fallback={<LoadingSkeleton />}>
+          {Tabs(params.id, isLiveMode)[selectedTab]}
+        </Suspense>
       </div>
     </section>
   );
