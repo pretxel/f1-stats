@@ -26,8 +26,8 @@ export default async function Session({
     : 1;
   const race = await getRaces(params.id);
   const isLiveMode = isLiveSessionNow(
-    new Date(race.date_start),
-    new Date(race.date_end)
+    new Date(race[0].date_start),
+    new Date(race[0].date_end)
   );
 
   return (
