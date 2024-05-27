@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     reactCompiler: true,
+    ppr: true,
   },
   poweredByHeader: false,
   images: {
