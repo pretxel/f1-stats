@@ -4,6 +4,7 @@ const nextConfig = {
   experimental: {
     reactCompiler: true,
     ppr: true,
+    missingSuspenseWithCSRBailout: false,
   },
   poweredByHeader: false,
   images: {
