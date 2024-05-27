@@ -3,8 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     reactCompiler: true,
-    ppr: true,
-    missingSuspenseWithCSRBailout: false,
+    // ppr: true,
+    // missingSuspenseWithCSRBailout: false,
   },
   poweredByHeader: false,
   images: {
