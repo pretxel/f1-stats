@@ -4,7 +4,7 @@ import PitStops from "@/components/pitstops";
 import { getRaces } from "@/services/races";
 import LiveItem from "@/components/liveItem";
 import isLiveSessionNow from "@/utils/isLiveSessionNow";
-import { LoadingSkeleton } from "@/utils/skeletons";
+import Skeleton from "react-loading-skeleton";
 
 interface TabJSXElement {
   [key: number]: JSX.Element;
@@ -35,7 +35,7 @@ export default async function Session({
       <div className="z-10 w-full items-center justify-between font-mono text-sm p-10">
         {isLiveMode && <LiveItem isLiveFetching={true} />}
 
-        <Suspense fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<Skeleton count={10} />}>
           {Tabs(params.id, isLiveMode)[selectedTab]}
         </Suspense>
       </div>
