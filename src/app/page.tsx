@@ -7,20 +7,36 @@ import { showSummerSale } from "@/flags";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { Suspense } from "react";
+import { encrypt } from "@vercel/flags";
+import { FlagValues } from "@vercel/flags/react";
+import { getFlags } from "./getFlags";
 
 export const revalidate = 3600;
 
 // TODO: create feature flags to SwitchSessionType and SearchInput
+
+async function ConfidentialFlagValues({ values }: { values: any }) {
+  const encryptedFlagValues = await encrypt(values);
+
+  return <FlagValues values={encryptedFlagValues} />;
+}
 
 export default async function Home() {
   const races = await getRaces();
 
   const sale = await showSummerSale();
 
+  const values = await getFlags();
+
   return (
     <section>
       <div className="z-10 w-full p-10 items-center font-mono text-sm flex-col gap-y-10">
         {sale && <SwitchSessionType />}
+        <Suspense fallback={null}>
+          <ConfidentialFlagValues values={values} />
+        </Suspense>
+
+        {values.showSearchInput && <SearchInput />}
         {/* <SearchInput /> */}
 
         <Suspense fallback={<Skeleton count={5} />}>

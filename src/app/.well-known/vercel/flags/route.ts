@@ -6,15 +6,6 @@ export async function GET(request: NextRequest) {
   if (!access) return NextResponse.json(null, { status: 401 });
 
   return NextResponse.json<ApiData>({
-    definitions: {
-      newFeature: {
-        description: "Controls whether the new feature is visible",
-        origin: "https://example.com/#new-feature",
-        options: [
-          { value: false, label: "Off" },
-          { value: true, label: "On" },
-        ],
-      },
-    },
+    definitions: {},
   });
 }
