@@ -20,6 +20,15 @@ export default function RootLayout({
   const shouldInjectToolbar = process.env.NODE_ENV === "development";
   return (
     <html lang="en">
+      <head>
+        <meta property="og:image" content="<generated>" />
+        <meta property="og:image:alt" content="F1 Stats" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="F1" />
+        <meta property="og:url" content="https://f1.edselserrano.com/" />
+      </head>
       <body
         className={
           inter.className +
