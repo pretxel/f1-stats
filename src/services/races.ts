@@ -1,9 +1,17 @@
-export const getRaces = async (sessionKey?: string) => {
+interface getRaceType {
+  sessionKey?: string;
+  sessionType?: string;
+}
+
+export const getRaces = async (params: getRaceType) => {
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const SERVICE = "sessions";
   let QUERIES = "?year=2024";
-  if (sessionKey) {
-    QUERIES += "&session_key=" + sessionKey;
+  if (params.sessionKey) {
+    QUERIES += "&session_key=" + params.sessionKey;
+  }
+  if (params.sessionType) {
+    QUERIES += "&session_type=" + params.sessionType;
   }
   try {
     const response = await fetch(API_ENDPOINT + SERVICE + QUERIES);

@@ -24,7 +24,7 @@ export default async function Session({
   const selectedTab = searchParams?.selectedTab
     ? parseInt(searchParams?.selectedTab as string)
     : 1;
-  const race = await getRaces(params.id);
+  const race = await getRaces({ sessionKey: params.id });
   const isLiveMode = isLiveSessionNow(
     new Date(race[0].date_start),
     new Date(race[0].date_end)

@@ -10,10 +10,10 @@ import { Suspense } from "react";
 import { encrypt } from "@vercel/flags";
 import { FlagValues } from "@vercel/flags/react";
 import { getFlags } from "./getFlags";
+import { orderRacesLastest } from "@/utils/orderRacesByLastest";
+import TabRaces from "@/components/tabRaces";
 
 export const revalidate = 3600;
-
-// TODO: create feature flags to SwitchSessionType and SearchInput
 
 async function ConfidentialFlagValues({ values }: { values: any }) {
   const encryptedFlagValues = await encrypt(values);
@@ -21,8 +21,21 @@ async function ConfidentialFlagValues({ values }: { values: any }) {
   return <FlagValues values={encryptedFlagValues} />;
 }
 
-export default async function Home() {
-  const races = await getRaces();
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  const sessionType = searchParams?.sessionType
+    ? (searchParams?.sessionType as string)
+    : undefined;
+  console.log(sessionType);
+  const races = await getRaces({ sessionType });
+  const racesOrdered = orderRacesLastest(
+    races,
+    sessionType,
+    sessionType ? NaN : 3
+  );
 
   const sale = await showSummerSale();
 
@@ -37,15 +50,16 @@ export default async function Home() {
         </Suspense>
 
         {values.showSearchInput && <SearchInput />}
-        {/* <SearchInput /> */}
+
+        <TabRaces sessionTypes={["Practice", "Qualifying", "Race"]} />
 
         <Suspense fallback={<Skeleton count={5} />}>
           <ul
             role="list"
             className="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3 xl:gap-x-8"
           >
-            {races?.length &&
-              races.map((race: RaceItemType) => (
+            {racesOrdered?.length &&
+              racesOrdered.map((race: RaceItemType) => (
                 <li
                   key={race.session_key}
                   className="transition-opacity ease-in duration-700 opacity-100 overflow-hidden rounded-xl border border-gray-200"
@@ -60,6 +74,7 @@ export default async function Home() {
                     session_key={race.session_key}
                     session_name={race.session_name}
                     country_code={race.country_code}
+                    session_type={race.session_type}
                   />
                 </li>
               ))}
