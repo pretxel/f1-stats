@@ -13,7 +13,7 @@ export default function TabRaces(props: TabRacesProps) {
       {props.sessionTypes.map((sessionType, index) => (
         <button
           key={index}
-          className="inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium duration-200 text-dark-5 hover:bg-black hover:text-white"
+          className="inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium duration-200 text-dark-5 hover:bg-black hover:text-white dark:text-black "
           onClick={() => router.push("?sessionType=" + sessionType)}
         >
           {sessionType}
