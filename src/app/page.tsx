@@ -12,24 +12,19 @@ import { FlagValues } from "@vercel/flags/react";
 import { getFlags } from "./getFlags";
 import { orderRacesLastest } from "@/utils/orderRacesByLastest";
 import TabRaces from "@/components/tabRaces";
-
 export const revalidate = 3600;
 
-async function ConfidentialFlagValues({ values }: { values: any }) {
+async function ConfidentialFlagValues({ values }: { readonly values: any }) {
   const encryptedFlagValues = await encrypt(values);
 
   return <FlagValues values={encryptedFlagValues} />;
 }
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
-  const sessionType = searchParams?.sessionType
-    ? (searchParams?.sessionType as string)
+const Home = async ({ searchParams }: any) => {
+  const searchParamsAwaited = await searchParams;
+  const sessionType = searchParamsAwaited?.sessionType
+    ? (searchParamsAwaited?.sessionType as string)
     : undefined;
-  console.log(sessionType);
   const races = await getRaces({ sessionType });
   const racesOrdered = orderRacesLastest(
     races,
@@ -83,4 +78,6 @@ export default async function Home({
       </div>
     </section>
   );
-}
+};
+
+export default Home;

@@ -14,17 +14,15 @@ const Tabs = (sessionKey: string, liveMode: boolean): TabJSXElement => ({
   2: <PitStops session_key={sessionKey} liveMode={liveMode} />,
 });
 
-export default async function Session({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
-  const selectedTab = searchParams?.selectedTab
-    ? parseInt(searchParams?.selectedTab as string)
+export default async function Session({ params, searchParams }: any) {
+  const paramsAwaited = await params;
+  const searchParamsAwaited = await searchParams;
+
+  const selectedTab = searchParamsAwaited?.selectedTab
+    ? parseInt(searchParamsAwaited?.selectedTab as string)
     : 1;
-  const race = await getRaces({ sessionKey: params.id });
+  const idSession = paramsAwaited.id;
+  const race = await getRaces({ sessionKey: idSession });
   const isLiveMode = isLiveSessionNow(
     new Date(race[0].date_start),
     new Date(race[0].date_end)
@@ -36,7 +34,7 @@ export default async function Session({
         {isLiveMode && <LiveItem isLiveFetching={true} />}
 
         <Suspense fallback={<Skeleton count={10} />}>
-          {Tabs(params.id, isLiveMode)[selectedTab]}
+          {Tabs(idSession, isLiveMode)[selectedTab]}
         </Suspense>
       </div>
     </section>
