@@ -6,7 +6,7 @@ interface getRaceType {
 export const getRaces = async (params: getRaceType) => {
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const SERVICE = "sessions";
-  let QUERIES = "?year=2024";
+  let QUERIES = "?year=2025";
   if (params.sessionKey) {
     QUERIES += "&session_key=" + params.sessionKey;
   }
