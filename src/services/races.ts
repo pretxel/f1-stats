@@ -1,3 +1,5 @@
+import { currentYear } from "@/utils/constants";
+
 interface getRaceType {
   sessionKey?: string;
   sessionType?: string;
@@ -6,7 +8,7 @@ interface getRaceType {
 export const getRaces = async (params: getRaceType) => {
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const SERVICE = "sessions";
-  let QUERIES = "?year=2025";
+  let QUERIES = `?year=${currentYear}`;
   if (params.sessionKey) {
     QUERIES += "&session_key=" + params.sessionKey;
   }

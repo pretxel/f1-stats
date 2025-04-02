@@ -4,6 +4,7 @@ import "./globals.css";
 import Image from "next/image";
 import Link from "next/link";
 import { VercelToolbar } from "@vercel/toolbar/next";
+import { currentYear } from "@/utils/constants";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,9 +49,10 @@ export default function RootLayout({
             </Link>
           </div>
           <span className="text-black">
-            First version of F1 stats, that you can only see the races from
-            2024.
+            First version of F1 stats, that you can only see the races from &nbsp;
+          {currentYear}.
           </span>
+          
         </section>
 
         <main className="m-5 w-full h-screen">{children}</main>
