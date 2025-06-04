@@ -1,7 +1,7 @@
 import { getRaceControlBySession } from "@/services/raceControl";
 import RaceControlItem from "./raceControlItem";
 import { orderRaceControl } from "@/utils/orderRaceControl";
-import adaptRaceControToTimeline from "@/utils/adaptRaceControToTimeline";
+import adaptRaceControlToTimeline from "@/utils/adaptRaceControlToTimeline";
 
 export type RaceControlProp = {
   session_key: string;
@@ -11,7 +11,7 @@ export type RaceControlProp = {
 const timeLineAdaptedRequest = async (sessionKey: string) => {
   const raceControlRequested = await getRaceControlBySession(sessionKey);
   const raceControlSorted = orderRaceControl(raceControlRequested);
-  const timeLineAdapted = adaptRaceControToTimeline(raceControlSorted);
+  const timeLineAdapted = adaptRaceControlToTimeline(raceControlSorted);
   return timeLineAdapted;
 };
 
