@@ -2,7 +2,7 @@ import { RaceControlTypeItem } from "@/types/RaceControlItem";
 import dayjs from "dayjs";
 const localizedFormat = require("dayjs/plugin/localizedFormat");
 dayjs.extend(localizedFormat);
-const adaptRaceControToTimeline = (raceControl: RaceControlTypeItem[]) => {
+const adaptRaceControlToTimeline = (raceControl: RaceControlTypeItem[]) => {
   return raceControl.map((race, index) => ({
     id: index,
     content: race.message,
@@ -13,4 +13,4 @@ const adaptRaceControToTimeline = (raceControl: RaceControlTypeItem[]) => {
   }));
 };
 
-export default adaptRaceControToTimeline;
+export default adaptRaceControlToTimeline;
