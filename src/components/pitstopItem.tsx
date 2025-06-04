@@ -55,10 +55,10 @@ export default function PitstopItem({ person }: any) {
           {person.name}
         </p>
         <p className="mt-1 truncate text-xs leading-5 text-gray-500">
-          Lap number: {person.lap_number}
+          Pitstops: {person.pitstops}
         </p>
         <p className="mt-1 truncate text-xs leading-5 text-gray-500">
-          Duration: {person.pit_duration} Seconds
+          Total: {person.total_duration} Seconds
         </p>
       </div>
     </li>
