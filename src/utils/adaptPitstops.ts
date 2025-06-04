@@ -1,3 +1,5 @@
+import { add } from './big';
+
 const adaptPitstops = (pitstops: any[]) => {
   const grouped = new Map<number, any>();
   pitstops.forEach((pitstop: any) => {
@@ -13,7 +15,7 @@ const adaptPitstops = (pitstops: any[]) => {
     }
     const data = grouped.get(driverId);
     data.pitstops += 1;
-    data.total_duration += Number(pitstop.pit_duration);
+    data.total_duration = add(data.total_duration, pitstop.pit_duration);
     grouped.set(driverId, data);
   });
   return Array.from(grouped.values());
