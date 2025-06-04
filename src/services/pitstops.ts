@@ -26,13 +26,13 @@ export const getPitstops = async (sessionKey: string) => {
 
     const response = await fetch(API_ENDPOINT + SERVICE + QUERIES);
 
-    const raceControlData = await response.json();
+    raceControlData = await response.json();
     for (let i = 0; i < raceControlData.length; i++) {
       const driver = await getDriver(raceControlData[i].driver_number);
       raceControlData[i] = { ...raceControlData[i], driver };
     }
 
-    const responseData = {query: API_ENDPOINT + SERVICE + QUERIES, data: null}
+    const responseData: CachedData = {query: API_ENDPOINT + SERVICE + QUERIES, data: null}
     responseData.query = API_ENDPOINT + SERVICE + QUERIES;
     responseData.data = raceControlData;
     await redis.set(key, JSON.stringify(responseData), {ex: TTL_CACHE});

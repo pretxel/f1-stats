@@ -1,7 +1,7 @@
 import { Redis } from '@upstash/redis';
 import { CachedData, TTL_CACHE } from './cache';
 
-export const getDriver = async (driverNumber: string) => {
+export const getDriver = async (driverNumber: number | string) => {
   const key = `drivers_driver_number_${driverNumber}`
   const redis = Redis.fromEnv();
   const API_ENDPOINT = process.env.API_ENDPOINT;
