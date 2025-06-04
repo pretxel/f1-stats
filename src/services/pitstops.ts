@@ -1,6 +1,7 @@
 import { getDriver } from "./driver";
 import { Redis } from '@upstash/redis';
 import { CachedData, TTL_CACHE } from './cache';
+import { isSessionLive } from './isSessionLive';
 
 interface PitstopData {
   driver_number: number;
@@ -16,10 +17,13 @@ export const getPitstops = async (sessionKey: string) => {
   const QUERIES = `?session_key=${sessionKey}`;
   let raceControlData: PitstopData[] = [];
   try {
-    const result = await redis.get(key);
-    const parsedResult = result && typeof result === "string"  ? JSON.parse(result) as CachedData : result as CachedData;
-    if (parsedResult && parsedResult.query === API_ENDPOINT + SERVICE + QUERIES) {
-      return parsedResult.data;
+    const live = await isSessionLive(sessionKey);
+    if (!live) {
+      const result = await redis.get(key);
+      const parsedResult = result && typeof result === "string"  ? JSON.parse(result) as CachedData : result as CachedData;
+      if (parsedResult && parsedResult.query === API_ENDPOINT + SERVICE + QUERIES) {
+        return parsedResult.data;
+      }
     }
 
     
@@ -35,7 +39,9 @@ export const getPitstops = async (sessionKey: string) => {
     const responseData: CachedData = {query: API_ENDPOINT + SERVICE + QUERIES, data: null}
     responseData.query = API_ENDPOINT + SERVICE + QUERIES;
     responseData.data = raceControlData;
-    await redis.set(key, JSON.stringify(responseData), {ex: TTL_CACHE});
+    if (!live) {
+      await redis.set(key, JSON.stringify(responseData), {ex: TTL_CACHE});
+    }
 
   } catch (error) {
     console.error(error);
