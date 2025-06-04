@@ -2,10 +2,16 @@ This is a [Next.js](https://nextjs.org/) project of F1 2024
 
 ## Getting Started
 
-First, run the development server:
+If you haven't already, install the dependencies:
 
 ```bash
-npm run dev
+pnpm install
+```
+
+Then run the development server:
+
+```bash
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
