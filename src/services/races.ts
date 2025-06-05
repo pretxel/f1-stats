@@ -5,22 +5,24 @@ import { CachedData, TTL_CACHE } from "./cache";
 interface GetRaceType {
   sessionKey?: string;
   sessionType?: string;
+  year?: number;
 }
 
 export const getRaces = async (params: GetRaceType) => {
-  let key = `racesResponse_year_${currentYear}`
+  const year = params.year ?? currentYear;
+  let key = `racesResponse_year_${year}`;
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const redis = Redis.fromEnv();
 
   const SERVICE = "sessions";
-  let QUERIES = `?year=${currentYear}`;
+  let QUERIES = `?year=${year}`;
   if (params.sessionKey) {
     QUERIES += "&session_key=" + params.sessionKey;
-    key = `racesResponse_session_key_${params.sessionKey}`
+    key = `racesResponse_session_key_${params.sessionKey}`;
   }
   if (params.sessionType) {
     QUERIES += "&session_type=" + params.sessionType;
-     key = `racesResponse_session_type_${params.sessionType}`
+    key = `racesResponse_session_type_${params.sessionType}_${year}`;
   }
   try {
     const result = await redis.get(key);
