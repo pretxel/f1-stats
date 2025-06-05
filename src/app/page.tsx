@@ -12,6 +12,7 @@ import { FlagValues } from "@vercel/flags/react";
 import { getFlags } from "./getFlags";
 import { orderRacesLastest } from "@/utils/orderRacesByLastest";
 import TabRaces from "@/components/tabRaces";
+import YearSelect from "@/components/yearSelect";
 export const revalidate = 3600;
 
 async function ConfidentialFlagValues({ values }: { readonly values: any }) {
@@ -25,7 +26,10 @@ const Home = async ({ searchParams }: any) => {
   const sessionType = searchParamsAwaited?.sessionType
     ? (searchParamsAwaited?.sessionType as string)
     : undefined;
-  const races = await getRaces({ sessionType });
+  const year = searchParamsAwaited?.year
+    ? parseInt(searchParamsAwaited?.year as string)
+    : undefined;
+  const races = await getRaces({ sessionType, year });
   const racesOrdered = orderRacesLastest(
     races,
     sessionType,
@@ -45,6 +49,8 @@ const Home = async ({ searchParams }: any) => {
         </Suspense>
 
         {values.showSearchInput && <SearchInput />}
+
+        <YearSelect />
 
         <TabRaces sessionTypes={["Practice", "Qualifying", "Race"]} />
 
