@@ -10,7 +10,8 @@ export const size = {
 
 export const contentType = "image/png";
 
-export default async function Image({ params }: { params: { id: string } }) {
+export default async function Image({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return new ImageResponse(
     (
       <div
@@ -24,7 +25,7 @@ export default async function Image({ params }: { params: { id: string } }) {
           justifyContent: "center",
         }}
       >
-        F1 Stats {params.id}
+        F1 Stats {id}
       </div>
     ),
     {

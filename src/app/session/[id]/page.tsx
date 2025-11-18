@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import RaceControl from "@/components/raceControl";
 import PitStops from "@/components/pitstops";
 import { getRaces } from "@/services/races";
@@ -7,7 +7,7 @@ import isLiveSessionNow from "@/utils/isLiveSessionNow";
 import Skeleton from "react-loading-skeleton";
 
 interface TabJSXElement {
-  [key: number]: JSX.Element;
+  [key: number]: React.JSX.Element;
 }
 const Tabs = (sessionKey: string, liveMode: boolean): TabJSXElement => ({
   1: <RaceControl session_key={sessionKey} liveMode={liveMode} />,
