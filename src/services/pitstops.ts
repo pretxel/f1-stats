@@ -2,6 +2,7 @@ import { getDriver } from "./driver";
 import { Redis } from '@upstash/redis';
 import { CachedData, TTL_CACHE } from './cache';
 import { isSessionLive } from './isSessionLive';
+import { rateLimitedFetch } from './rateLimiter';
 
 interface PitstopData {
   driver_number: number;
@@ -28,13 +29,17 @@ export const getPitstops = async (sessionKey: string) => {
 
     
 
-    const response = await fetch(API_ENDPOINT + SERVICE + QUERIES);
+    const response = await rateLimitedFetch(API_ENDPOINT + SERVICE + QUERIES);
 
     raceControlData = await response.json();
-    for (let i = 0; i < raceControlData.length; i++) {
-      const driver = await getDriver(raceControlData[i].driver_number);
-      raceControlData[i] = { ...raceControlData[i], driver };
+
+    // Fetch each unique driver once, then attach to all matching pitstops
+    const uniqueDriverNumbers = [...new Set(raceControlData.map((p) => p.driver_number))];
+    const driverMap = new Map<number, any>();
+    for (const driverNumber of uniqueDriverNumbers) {
+      driverMap.set(driverNumber, await getDriver(driverNumber));
     }
+    raceControlData = raceControlData.map((p) => ({ ...p, driver: driverMap.get(p.driver_number) }));
 
     const responseData: CachedData = {query: API_ENDPOINT + SERVICE + QUERIES, data: null}
     responseData.query = API_ENDPOINT + SERVICE + QUERIES;

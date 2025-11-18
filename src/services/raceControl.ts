@@ -2,6 +2,7 @@ import { RaceControlTypeItem } from "@/types/RaceControlItem";
 import { Redis } from '@upstash/redis';
 import { CachedData, TTL_CACHE } from './cache';
 import { isSessionLive } from './isSessionLive';
+import { rateLimitedFetch } from './rateLimiter';
 export const getRaceControlBySession = async (
   sessionKey: string
 ): Promise<RaceControlTypeItem[]> => {
@@ -19,7 +20,7 @@ export const getRaceControlBySession = async (
         return parsedResult.data;
       }
     }
-    const response = await fetch(API_ENDPOINT + SERVICE + QUERIES);
+    const response = await rateLimitedFetch(API_ENDPOINT + SERVICE + QUERIES);
     const raceControlData = await response.json();
 
     const responseData = {query: API_ENDPOINT + SERVICE + QUERIES, data: null}
