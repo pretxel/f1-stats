@@ -4,7 +4,10 @@ export function useIsVisible(ref: Ref<HTMLLIElement> & { current: any }) {
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      setIntersecting(entry.isIntersecting);
+      if (entry.isIntersecting) {
+        setIntersecting(true);
+        observer.disconnect();
+      }
     });
 
     if (ref && ref?.current) {
