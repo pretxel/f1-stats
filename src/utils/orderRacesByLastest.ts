@@ -7,8 +7,8 @@ export function orderRacesLastest(
 ) {
   const raceFiltered = races.filter((race) => race.session_type === filter);
 
-  const raceSorted = raceFiltered.sort(
-    (a, b) => new Date(b.date_end).getTime() - new Date(a.date_end).getTime()
+  const raceSorted = raceFiltered.toSorted(
+    (a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime()
   );
   return filter && !Number.isNaN(limit)
     ? raceSorted.slice(0, limit)
