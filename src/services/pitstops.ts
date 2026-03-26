@@ -31,6 +31,10 @@ export const getPitstops = async (sessionKey: string) => {
 
     const response = await rateLimitedFetch(API_ENDPOINT + SERVICE + QUERIES);
 
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+
     raceControlData = await response.json();
 
     // Fetch each unique driver once in parallel, then attach to all matching pitstops
