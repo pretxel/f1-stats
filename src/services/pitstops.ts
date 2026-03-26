@@ -33,12 +33,14 @@ export const getPitstops = async (sessionKey: string) => {
 
     raceControlData = await response.json();
 
-    // Fetch each unique driver once, then attach to all matching pitstops
+    // Fetch each unique driver once in parallel, then attach to all matching pitstops
     const uniqueDriverNumbers = [...new Set(raceControlData.map((p) => p.driver_number))];
     const driverMap = new Map<number, any>();
-    for (const driverNumber of uniqueDriverNumbers) {
-      driverMap.set(driverNumber, await getDriver(driverNumber));
-    }
+    await Promise.all(
+      uniqueDriverNumbers.map(async (driverNumber) => {
+        driverMap.set(driverNumber, await getDriver(driverNumber));
+      })
+    );
     raceControlData = raceControlData.map((p) => ({ ...p, driver: driverMap.get(p.driver_number) }));
 
     const responseData: CachedData = {query: API_ENDPOINT + SERVICE + QUERIES, data: null}
