@@ -1,4 +1,6 @@
-import { jest } from "@jest/globals";
+// Import jest under an alias so the global `jest` remains accessible
+// inside jest.mock() factories (which @swc/jest hoists before imports run).
+import { jest as jestGlobals } from "@jest/globals";
 import { getPitstops } from "./pitstops";
 import { getDriver } from "./driver";
 
@@ -7,6 +9,8 @@ jest.mock("@upstash/redis", () => ({
     fromEnv: jest.fn().mockReturnValue({
       get: jest.fn().mockResolvedValue(null),
       set: jest.fn().mockResolvedValue(undefined),
+      // Always grant a rate-limit slot so tests don't block on Redis.
+      eval: jest.fn().mockResolvedValue(1),
     }),
   },
 }));
@@ -16,14 +20,15 @@ jest.mock("./driver", () => ({
 }));
 
 describe("getPitstops", () => {
-  let fetchSpy: jest.SpiedFunction<typeof fetch>;
+  let fetchSpy: jestGlobals.SpiedFunction<typeof fetch>;
 
   beforeEach(() => {
-    fetchSpy = jest.spyOn(global, "fetch");
+    fetchSpy = jestGlobals.spyOn(global, "fetch");
+    (getDriver as jestGlobals.Mock).mockResolvedValue({ code: "DRV" });
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    jestGlobals.restoreAllMocks();
   });
 
   it("returns parsed pit stop entries", async () => {
@@ -35,10 +40,9 @@ describe("getPitstops", () => {
     ];
 
     fetchSpy.mockResolvedValue({
+      ok: true,
       json: jest.fn().mockResolvedValue(sampleResponse),
     } as unknown as Response);
-
-    (getDriver as jest.Mock).mockResolvedValue({ code: "DRV" });
 
     const data = await getPitstops("9507");
 

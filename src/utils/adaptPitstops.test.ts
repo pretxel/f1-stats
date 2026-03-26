@@ -42,4 +42,27 @@ describe('adaptPitstops', () => {
       },
     ]);
   });
+
+  it('falls back gracefully when driver data is missing', () => {
+    const data = [
+      {
+        driver_number: 33,
+        lap_number: 5,
+        pit_duration: '2',
+        driver: null,
+      },
+    ];
+
+    const result = adaptPitstops(data);
+
+    expect(result).toEqual([
+      {
+        key: '33',
+        name: 'Driver #33',
+        imageUrl: null,
+        pitstops: 1,
+        total_duration: 2,
+      },
+    ]);
+  });
 });
