@@ -7,6 +7,8 @@ jest.mock("@upstash/redis", () => ({
     fromEnv: jest.fn().mockReturnValue({
       get: jest.fn().mockResolvedValue(null),
       set: jest.fn().mockResolvedValue(undefined),
+      // Always grant a rate-limit slot so tests don't block on Redis.
+      eval: jest.fn().mockResolvedValue(1),
     }),
   },
 }));
