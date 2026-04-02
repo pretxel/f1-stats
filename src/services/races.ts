@@ -6,15 +6,17 @@ import { rateLimitedFetch } from "./rateLimiter";
 interface GetRaceType {
   sessionKey?: string;
   sessionType?: string;
+  year?: number;
 }
 
 export const getRaces = async (params: GetRaceType) => {
-  let key = `racesResponse_year_${currentYear}`
+  const year = (Number.isInteger(params.year) && params.year! > 0) ? params.year! : currentYear;
+  let key = `racesResponse_year_${year}`
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const redis = Redis.fromEnv();
 
   const SERVICE = "sessions";
-  let QUERIES = `?year=${currentYear}`;
+  let QUERIES = `?year=${year}`;
   if (params.sessionKey) {
     QUERIES += "&session_key=" + params.sessionKey;
     key = `racesResponse_session_key_${params.sessionKey}`

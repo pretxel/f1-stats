@@ -2,29 +2,29 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-interface TabRacesProps {
-  sessionTypes: string[];
+interface YearSelectorProps {
+  years: number[];
 }
 
-export default function TabRaces(props: TabRacesProps) {
+export default function YearSelector(props: YearSelectorProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const activeSessionType = searchParams.get("sessionType");
-  const year = searchParams.get("year");
+  const activeYear = searchParams.get("year");
+  const sessionType = searchParams.get("sessionType");
 
-  const buildUrl = (sessionType?: string) => {
+  const buildUrl = (year?: number) => {
     const params = new URLSearchParams();
-    if (year) params.set("year", year);
     if (sessionType) params.set("sessionType", sessionType);
-    const qs = params.toString();
-    return qs ? `/?${qs}` : "/";
+    if (year !== undefined) params.set("year", String(year));
+    const query = params.toString();
+    return query ? `/?${query}` : "/";
   };
 
   return (
-    <div className="flex items-center gap-1 mb-8">
+    <div className="flex items-center gap-1 mb-4">
       <button
         className={`font-data text-[10px] tracking-[0.25em] uppercase px-4 py-2 transition-all duration-200 border ${
-          !activeSessionType
+          !activeYear
             ? "bg-f1red border-f1red text-white"
             : "border-carbon-border text-muted hover:border-muted hover:text-chromium bg-transparent"
         }`}
@@ -32,17 +32,17 @@ export default function TabRaces(props: TabRacesProps) {
       >
         ALL
       </button>
-      {props.sessionTypes.map((sessionType, index) => (
+      {props.years.map((year) => (
         <button
-          key={index}
+          key={year}
           className={`font-data text-[10px] tracking-[0.25em] uppercase px-4 py-2 transition-all duration-200 border ${
-            activeSessionType === sessionType
+            activeYear === String(year)
               ? "bg-f1red border-f1red text-white"
               : "border-carbon-border text-muted hover:border-muted hover:text-chromium bg-transparent"
           }`}
-          onClick={() => router.push(buildUrl(sessionType))}
+          onClick={() => router.push(buildUrl(year))}
         >
-          {sessionType}
+          {year}
         </button>
       ))}
     </div>

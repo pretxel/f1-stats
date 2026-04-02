@@ -9,6 +9,7 @@ import { FlagValues } from "@vercel/flags/react";
 import { getFlags } from "./getFlags";
 import { orderRacesLastest } from "@/utils/orderRacesByLastest";
 import TabRaces from "@/components/tabRaces";
+import YearSelector from "@/components/yearSelector";
 
 export const revalidate = 3600;
 
@@ -22,7 +23,9 @@ const Home = async ({ searchParams }: any) => {
   const sessionType = searchParamsAwaited?.sessionType
     ? (searchParamsAwaited?.sessionType as string)
     : undefined;
-  const races = await getRaces({ sessionType });
+  const parsedYear = Number(searchParamsAwaited?.year);
+  const year = Number.isInteger(parsedYear) && parsedYear > 0 ? parsedYear : undefined;
+  const races = await getRaces({ sessionType, year });
   const racesOrdered = orderRacesLastest(
     races,
     sessionType,
@@ -39,6 +42,21 @@ const Home = async ({ searchParams }: any) => {
       </Suspense>
 
       {values.showSearchInput && <SearchInput />}
+
+      <Suspense
+        fallback={
+          <div className="flex gap-1 mb-4">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="h-8 w-16 bg-carbon-mid animate-pulse"
+              />
+            ))}
+          </div>
+        }
+      >
+        <YearSelector years={[2023, 2024, 2025, 2026]} />
+      </Suspense>
 
       <Suspense
         fallback={
