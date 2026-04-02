@@ -23,7 +23,8 @@ const Home = async ({ searchParams }: any) => {
   const sessionType = searchParamsAwaited?.sessionType
     ? (searchParamsAwaited?.sessionType as string)
     : undefined;
-  const year = searchParamsAwaited?.year ? Number(searchParamsAwaited.year) : undefined;
+  const parsedYear = Number(searchParamsAwaited?.year);
+  const year = Number.isInteger(parsedYear) && parsedYear > 0 ? parsedYear : undefined;
   const races = await getRaces({ sessionType, year });
   const racesOrdered = orderRacesLastest(
     races,

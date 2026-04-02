@@ -10,7 +10,7 @@ interface GetRaceType {
 }
 
 export const getRaces = async (params: GetRaceType) => {
-  const year = params.year ?? currentYear;
+  const year = (Number.isInteger(params.year) && params.year! > 0) ? params.year! : currentYear;
   let key = `racesResponse_year_${year}`
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const redis = Redis.fromEnv();
