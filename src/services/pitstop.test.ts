@@ -1,56 +1,48 @@
-// Import jest under an alias so the global `jest` remains accessible
-// inside jest.mock() factories (which @swc/jest hoists before imports run).
-import { jest as jestGlobals } from "@jest/globals";
 import { getPitstops } from "./pitstops";
-import { getDriver } from "./driver";
 
 jest.mock("@upstash/redis", () => ({
   Redis: {
     fromEnv: jest.fn().mockReturnValue({
       get: jest.fn().mockResolvedValue(null),
       set: jest.fn().mockResolvedValue(undefined),
-      // Always grant a rate-limit slot so tests don't block on Redis.
       eval: jest.fn().mockResolvedValue(1),
     }),
   },
 }));
 
 jest.mock("./driver", () => ({
-  getDriver: jest.fn(),
+  getDriver: jest.fn().mockResolvedValue({ code: "DRV" }),
+}));
+
+jest.mock("./isSessionLive", () => ({
+  isSessionLive: jest.fn().mockResolvedValue(false),
 }));
 
 describe("getPitstops", () => {
-  let fetchSpy: jestGlobals.SpiedFunction<typeof fetch>;
-
   beforeEach(() => {
-    fetchSpy = jestGlobals.spyOn(global, "fetch");
-    (getDriver as jestGlobals.Mock).mockResolvedValue({ code: "DRV" });
-  });
-
-  afterEach(() => {
-    jestGlobals.restoreAllMocks();
-  });
-
-  it("returns parsed pit stop entries", async () => {
     process.env.API_ENDPOINT = "https://api.test/";
+    jest.clearAllMocks();
+  });
 
+  it("returns parsed pit stop entries with driver data attached", async () => {
     const sampleResponse = [
       { driver_number: 44, lap: 10 },
       { driver_number: 55, lap: 15 },
     ];
 
-    fetchSpy.mockResolvedValue({
-      ok: true,
+    global.fetch = jest.fn().mockResolvedValue({
       json: jest.fn().mockResolvedValue(sampleResponse),
     } as unknown as Response);
 
+    const { getDriver } = require("./driver");
+    getDriver.mockResolvedValue({ code: "DRV" });
+
     const data = await getPitstops("9507");
 
+    expect(Array.isArray(data)).toBe(true);
     expect(data).toEqual([
       { driver_number: 44, lap: 10, driver: { code: "DRV" } },
       { driver_number: 55, lap: 15, driver: { code: "DRV" } },
     ]);
-
-    expect(Array.isArray(data)).toBe(true);
   });
 });
