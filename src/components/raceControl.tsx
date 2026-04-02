@@ -16,11 +16,19 @@ const timeLineAdaptedRequest = async (sessionKey: string) => {
 };
 
 export default async function RaceControl(props: RaceControlProp) {
-  let timeLineAdapted = await timeLineAdaptedRequest(props.session_key);
+  const timeLineAdapted = await timeLineAdaptedRequest(props.session_key);
 
   return (
-    <div className="flow-root pt-10">
-      <ul role="list" className="-mb-8">
+    <div className="max-w-2xl">
+      <div className="mb-6 flex items-center gap-3">
+        <span className="font-data text-[10px] tracking-[0.3em] uppercase text-muted">
+          Events
+        </span>
+        <span className="font-data text-[10px] text-muted-dark">
+          {timeLineAdapted.length}
+        </span>
+      </div>
+      <ul role="list">
         {timeLineAdapted.map((event, eventIdx) => (
           <RaceControlItem
             key={event.id}

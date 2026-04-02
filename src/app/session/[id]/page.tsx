@@ -4,7 +4,6 @@ import PitStops from "@/components/pitstops";
 import { getRaces } from "@/services/races";
 import LiveItem from "@/components/liveItem";
 import isLiveSessionNow from "@/utils/isLiveSessionNow";
-import Skeleton from "react-loading-skeleton";
 
 interface TabJSXElement {
   [key: number]: React.JSX.Element;
@@ -30,13 +29,26 @@ export default async function Session({ params, searchParams }: any) {
 
   return (
     <section>
-      <div className="z-10 w-full items-center justify-between font-mono text-sm p-10">
-        {isLiveMode && <LiveItem isLiveFetching={true} />}
+      {isLiveMode && (
+        <div className="mb-6">
+          <LiveItem isLiveFetching={true} />
+        </div>
+      )}
 
-        <Suspense fallback={<Skeleton count={10} />}>
-          {Tabs(idSession, isLiveMode)[selectedTab]}
-        </Suspense>
-      </div>
+      <Suspense
+        fallback={
+          <div className="space-y-3">
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="h-12 bg-carbon-light border-l-[3px] border-carbon-border animate-pulse"
+              />
+            ))}
+          </div>
+        }
+      >
+        {Tabs(idSession, isLiveMode)[selectedTab]}
+      </Suspense>
     </section>
   );
 }

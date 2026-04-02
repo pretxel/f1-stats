@@ -11,10 +11,13 @@ export default function ButtonRaceItem(props: { session_key: string }) {
 
   return (
     <button
-      className="transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:bg-indigo-500 duration-300 flex-none rounded-md bg-indigo-400 px-3.5 py-2.5 text-sm font-semibold  shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 text-black"
+      className="group/btn font-data text-[10px] tracking-[0.25em] uppercase font-bold px-4 py-2.5 bg-transparent border border-carbon-border text-muted hover:border-f1red hover:text-f1red transition-all duration-200 flex items-center gap-2"
       onClick={() => goSession()}
     >
-      Details
+      View Session
+      <span className="transition-transform duration-200 group-hover/btn:translate-x-1">
+        ▶
+      </span>
     </button>
   );
 }

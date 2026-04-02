@@ -1,60 +1,63 @@
 "use client";
-import { classNames } from "@/utils/classNames";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const tabs = [
-  { name: "Race Control", href: "#" },
-  { name: "Pit stops", href: "#" },
+  { name: "Race Control", label: "RACE CONTROL" },
+  { name: "Pit stops", label: "PIT STOPS" },
 ];
 
 export default function Tabs() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedTab = parseInt(searchParams.get("selectedTab") || "1");
+
   return (
-    <div>
+    <div className="mb-8">
+      {/* Mobile select */}
       <div className="sm:hidden">
         <label htmlFor="tabs" className="sr-only">
           Select a tab
         </label>
-
         <select
           id="tabs"
           name="tabs"
-          className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-          defaultValue={tabs[selectedTab - 1].name}
-          test-id={selectedTab}
+          className="block w-full bg-carbon-light border border-carbon-border text-chromium font-data text-xs tracking-widest py-2 px-3 focus:border-f1red focus:outline-none"
+          defaultValue={selectedTab}
           onChange={(e) => router.push("?selectedTab=" + e.target.value)}
         >
           {tabs.map((tab, tabIdx) => (
             <option key={tab.name} value={tabIdx + 1}>
-              {tab.name}
+              {tab.label}
             </option>
           ))}
         </select>
       </div>
-      <div className="hidden sm:block">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex" aria-label="Tabs">
-            {tabs.map((tab, tabIdx) => (
+
+      {/* Desktop tabs */}
+      <div className="hidden sm:block border-b border-carbon-border">
+        <nav className="flex" aria-label="Tabs">
+          {tabs.map((tab, tabIdx) => {
+            const isActive = selectedTab === tabIdx + 1;
+            return (
               <Link
                 key={tab.name}
                 href={`?selectedTab=${tabIdx + 1}`}
-                className={classNames(
-                  selectedTab === tabIdx + 1
-                    ? "border-indigo-500 text-indigo-600"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                  "w-1/4 border-b-2 py-4 px-1 text-center text-sm font-medium"
-                )}
-                aria-current={selectedTab === tabIdx + 1 ? "page" : undefined}
+                className={`relative font-data text-[11px] tracking-[0.25em] uppercase px-6 py-4 transition-colors duration-200 ${
+                  isActive
+                    ? "text-chromium"
+                    : "text-muted hover:text-chromium"
+                }`}
+                aria-current={isActive ? "page" : undefined}
               >
-                {tab.name}
+                {tab.label}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-f1red" />
+                )}
               </Link>
-            ))}
-          </nav>
-        </div>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );
