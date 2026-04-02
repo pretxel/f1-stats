@@ -29,7 +29,7 @@ export const getWinnerByRace = async (sessionKey: string) => {
         await redis.set(key, JSON.stringify(responseData), { ex: TTL_CACHE });
       }
     } else {
-      const response = await fetch(API_ENDPOINT + SERVICE + QUERIES, {
+      const response = await rateLimitedFetch(API_ENDPOINT + SERVICE + QUERIES, {
         next: { revalidate: 3600, tags: ["winners"] },
       });
       racesData = await response.json();

@@ -7,8 +7,8 @@ const adaptPitstops = (pitstops: any[]) => {
     if (!grouped.has(driverId)) {
       grouped.set(driverId, {
         key: `${driverId}`,
-        name: pitstop.driver.full_name,
-        imageUrl: pitstop.driver.headshot_url,
+        name: pitstop.driver?.full_name ?? `Driver #${driverId}`,
+        imageUrl: pitstop.driver?.headshot_url ?? null,
         pitstops: 0,
         total_duration: 0,
       });
