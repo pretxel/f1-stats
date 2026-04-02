@@ -10,6 +10,15 @@ export default function TabRaces(props: TabRacesProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeSessionType = searchParams.get("sessionType");
+  const year = searchParams.get("year");
+
+  const buildUrl = (sessionType?: string) => {
+    const params = new URLSearchParams();
+    if (year) params.set("year", year);
+    if (sessionType) params.set("sessionType", sessionType);
+    const qs = params.toString();
+    return qs ? `/?${qs}` : "/";
+  };
 
   return (
     <div className="flex items-center gap-1 mb-8">
@@ -19,7 +28,7 @@ export default function TabRaces(props: TabRacesProps) {
             ? "bg-f1red border-f1red text-white"
             : "border-carbon-border text-muted hover:border-muted hover:text-chromium bg-transparent"
         }`}
-        onClick={() => router.push("/")}
+        onClick={() => router.push(buildUrl())}
       >
         ALL
       </button>
@@ -31,7 +40,7 @@ export default function TabRaces(props: TabRacesProps) {
               ? "bg-f1red border-f1red text-white"
               : "border-carbon-border text-muted hover:border-muted hover:text-chromium bg-transparent"
           }`}
-          onClick={() => router.push("?sessionType=" + sessionType)}
+          onClick={() => router.push(buildUrl(sessionType))}
         >
           {sessionType}
         </button>
