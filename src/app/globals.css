@@ -3,26 +3,75 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --f1red: #e10600;
+  --f1red-dark: #b00400;
+  --carbon: #0c0c0e;
+  --carbon-light: #141418;
+  --carbon-mid: #1c1c22;
+  --carbon-border: #2a2a32;
+  --chromium: #f0f0f0;
+  --muted: #8b8b9a;
+  --gold: #ffd700;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
+html,
 body {
-  color: rgb(var(--foreground-rgb));
-  
+  background-color: var(--carbon);
+  color: var(--chromium);
+}
+
+/* Grain texture overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Top-left red atmosphere */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    ellipse at 0% 0%,
+    rgba(225, 6, 0, 0.07) 0%,
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+::-webkit-scrollbar-track {
+  background: var(--carbon);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--f1red);
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Left red racing stripe */
+  .stripe-left {
+    border-left: 3px solid var(--f1red);
+  }
+
+  /* Subtle top accent line */
+  .stripe-top {
+    border-top: 2px solid var(--f1red);
   }
 }

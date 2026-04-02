@@ -1,22 +1,19 @@
 import RaceItem from "@/components/raceItem";
 import { getRaces } from "@/services/races";
 import { RaceItemType } from "@/types/RaceItemType";
-import SwitchSessionType from "@/components/switchSessionType";
 import SearchInput from "@/components/searchInput";
 import { showSummerSale } from "@/flags";
-import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
 import { Suspense } from "react";
 import { encrypt } from "@vercel/flags";
 import { FlagValues } from "@vercel/flags/react";
 import { getFlags } from "./getFlags";
 import { orderRacesLastest } from "@/utils/orderRacesByLastest";
 import TabRaces from "@/components/tabRaces";
+
 export const revalidate = 3600;
 
 async function ConfidentialFlagValues({ values }: { readonly values: any }) {
   const encryptedFlagValues = await encrypt(values);
-
   return <FlagValues values={encryptedFlagValues} />;
 }
 
@@ -33,50 +30,66 @@ const Home = async ({ searchParams }: any) => {
   );
 
   const sale = await showSummerSale();
-
   const values = await getFlags();
 
   return (
-    <section>
-      <div className="z-10 w-full p-10 items-center font-mono text-sm flex-col gap-y-10">
-        {sale && <SwitchSessionType />}
-        <Suspense fallback={null}>
-          <ConfidentialFlagValues values={values} />
-        </Suspense>
+    <>
+      <Suspense fallback={null}>
+        <ConfidentialFlagValues values={values} />
+      </Suspense>
 
-        {values.showSearchInput && <SearchInput />}
+      {values.showSearchInput && <SearchInput />}
 
+      <Suspense
+        fallback={
+          <div className="flex gap-1 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="h-8 w-24 bg-carbon-mid animate-pulse"
+              />
+            ))}
+          </div>
+        }
+      >
         <TabRaces sessionTypes={["Practice", "Qualifying", "Race"]} />
+      </Suspense>
 
-        <Suspense fallback={<Skeleton count={5} />}>
-          <ul
-            role="list"
-            className="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3 xl:gap-x-8"
-          >
-            {racesOrdered?.length &&
-              racesOrdered.map((race: RaceItemType) => (
-                <li
-                  key={race.session_key}
-                  className="transition-opacity ease-in duration-700 opacity-100 overflow-hidden rounded-xl border border-gray-200"
-                >
-                  <RaceItem
-                    key={race.session_key}
-                    circuit_short_name={race.circuit_short_name}
-                    country_name={race.country_name}
-                    date_start={race.date_start}
-                    date_end={race.date_end}
-                    location={race.location}
-                    session_key={race.session_key}
-                    session_name={race.session_name}
-                    country_code={race.country_code}
-                    session_type={race.session_type}
-                  />
-                </li>
-              ))}
-          </ul>
-        </Suspense>
-      </div>
-    </section>
+      <Suspense
+        fallback={
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="h-64 bg-carbon-light border-l-[3px] border-f1red animate-pulse"
+              />
+            ))}
+          </div>
+        }
+      >
+        <ul
+          role="list"
+          className="grid grid-cols-1 gap-4 lg:grid-cols-3"
+        >
+          {racesOrdered?.length > 0 &&
+            racesOrdered.map((race: RaceItemType) => (
+              <li key={race.session_key}>
+                <RaceItem
+                  circuit_short_name={race.circuit_short_name}
+                  country_name={race.country_name}
+                  date_start={race.date_start}
+                  date_end={race.date_end}
+                  location={race.location}
+                  session_key={race.session_key}
+                  session_name={race.session_name}
+                  country_code={race.country_code}
+                  session_type={race.session_type}
+                />
+              </li>
+            ))}
+        </ul>
+      </Suspense>
+    </>
   );
 };
 
