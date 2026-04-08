@@ -1,6 +1,4 @@
 import { ImageResponse } from "next/og";
-import { getRaces } from "@/services/races";
-import type { RaceItemType } from "@/types/RaceItemType";
 
 export const runtime = "edge";
 
@@ -24,22 +22,33 @@ export default async function Image({
   let dateStr = "";
 
   try {
-    const races = (await getRaces({ sessionKey: id })) as RaceItemType[];
-    if (races && races.length > 0) {
-      const s = races[0];
-      circuitName = s.circuit_short_name ?? circuitName;
-      countryName = s.country_name ?? "";
-      sessionType = s.session_type ?? "";
-      dateStr = s.date_start
-        ? new Date(s.date_start).toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })
-        : "";
+    const apiEndpoint = process.env.API_ENDPOINT;
+    if (apiEndpoint) {
+      const res = await fetch(
+        `${apiEndpoint}sessions?session_key=${id}`,
+        { next: { revalidate: 3600 } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const s = data[0];
+          circuitName = s.circuit_short_name ?? circuitName;
+          countryName = s.country_name ?? "";
+          sessionType = s.session_type ?? "";
+          dateStr = s.date_start
+            ? new Date(s.date_start).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })
+            : "";
+        }
+      }
     }
-  } catch {
-    // fall back to defaults
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[session/opengraph-image] Failed to fetch session data:", err);
+    }
   }
 
   return new ImageResponse(
