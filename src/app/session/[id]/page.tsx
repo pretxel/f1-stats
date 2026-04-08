@@ -5,6 +5,7 @@ import PitStops from "@/components/pitstops";
 import { getRaces } from "@/services/races";
 import LiveItem from "@/components/liveItem";
 import isLiveSessionNow from "@/utils/isLiveSessionNow";
+import type { RaceItemType } from "@/types/RaceItemType";
 
 interface TabJSXElement {
   [key: number]: React.JSX.Element;
@@ -21,7 +22,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   try {
-    const race = await getRaces({ sessionKey: id });
+    const race = await getRaces({ sessionKey: id }) as RaceItemType[];
     if (!race || race.length === 0) {
       return { title: "Session — F1 Stats" };
     }
@@ -35,6 +36,7 @@ export async function generateMetadata({
         title,
         description,
         type: "website",
+        url: `https://f1.edselserrano.com/session/${id}`,
       },
     };
   } catch {
@@ -42,7 +44,13 @@ export async function generateMetadata({
   }
 }
 
-export default async function Session({ params, searchParams }: any) {
+export default async function Session({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ selectedTab?: string }>;
+}) {
   const paramsAwaited = await params;
   const searchParamsAwaited = await searchParams;
 
@@ -50,7 +58,10 @@ export default async function Session({ params, searchParams }: any) {
     ? parseInt(searchParamsAwaited?.selectedTab as string)
     : 1;
   const idSession = paramsAwaited.id;
-  const race = await getRaces({ sessionKey: idSession });
+  const race = await getRaces({ sessionKey: idSession }) as RaceItemType[];
+  if (!race || race.length === 0) {
+    throw new Error(`Session not found: ${idSession}`);
+  }
   const isLiveMode = isLiveSessionNow(
     new Date(race[0].date_start),
     new Date(race[0].date_end)
