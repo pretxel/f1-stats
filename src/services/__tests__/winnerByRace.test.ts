@@ -59,7 +59,7 @@ describe("getWinnerByRace", () => {
     });
 
     it("returns winner with driver data from cache", async () => {
-      const QUERIES = `?session_key=${SESSION_KEY}&position<=1`;
+      const QUERIES = `?session_key=${SESSION_KEY}&position=1`;
       const cachedData = {
         query: `${API_ENDPOINT}position${QUERIES}`,
         data: samplePositionData,
@@ -71,6 +71,7 @@ describe("getWinnerByRace", () => {
 
       expect(result.driver_number).toBe(44);
       expect(result.driver).toEqual(winnerDriver);
+      expect(getDriver).toHaveBeenCalledWith(44, SESSION_KEY);
       expect(rateLimitedFetch).not.toHaveBeenCalled();
     });
 
@@ -115,9 +116,9 @@ describe("getWinnerByRace", () => {
     });
 
     it("fetches live data from API and returns winner with driver", async () => {
-      global.fetch = jest.fn().mockResolvedValue({
+      (rateLimitedFetch as jest.Mock).mockResolvedValue({
         json: jest.fn().mockResolvedValue(samplePositionData),
-      } as unknown as Response);
+      });
       (getDriver as jest.Mock).mockResolvedValue(winnerDriver);
 
       const result = await getWinnerByRace(SESSION_KEY);
