@@ -7,7 +7,7 @@ export const getWinnerByRace = async (sessionKey: string) => {
   const key = `position_session_key_${sessionKey}_position_1`;
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const SERVICE = "position";
-  const QUERIES = `?session_key=${sessionKey}&position<=1`;
+  const QUERIES = `?session_key=${sessionKey}&position=1`;
   let racesData = [];
   const redis = Redis.fromEnv();
   try {
@@ -44,7 +44,7 @@ export const getWinnerByRace = async (sessionKey: string) => {
   let winnerDriver = null;
   if (racesData && racesData.length > 0) {
     winnerDriver = racesData.at(-1);
-    driver = await getDriver(winnerDriver.driver_number);
+    driver = await getDriver(winnerDriver.driver_number, sessionKey);
   }
 
   return {

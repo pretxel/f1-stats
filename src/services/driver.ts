@@ -2,12 +2,16 @@ import { Redis } from '@upstash/redis';
 import { CachedData, TTL_CACHE } from './cache';
 import { rateLimitedFetch } from './rateLimiter';
 
-export const getDriver = async (driverNumber: number | string) => {
-  const key = `drivers_driver_number_${driverNumber}`
+export const getDriver = async (driverNumber: number | string, sessionKey?: string) => {
+  const key = sessionKey
+    ? `drivers_driver_number_${driverNumber}_session_${sessionKey}`
+    : `drivers_driver_number_${driverNumber}`;
   const redis = Redis.fromEnv();
   const API_ENDPOINT = process.env.API_ENDPOINT;
   const SERVICE = "drivers";
-  const QUERIES = `?driver_number=${driverNumber}`;
+  const QUERIES = sessionKey
+    ? `?driver_number=${driverNumber}&session_key=${sessionKey}`
+    : `?driver_number=${driverNumber}`;
   try {
     const result = await redis.get(key);
     const parsedResult = result && typeof result === "string" ? JSON.parse(result) as CachedData : result as CachedData;
