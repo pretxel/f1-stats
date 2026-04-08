@@ -20,8 +20,16 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "F1 stats",
-  description: "F1 stats",
+  title: "F1 Stats — Formula 1 Session Data",
+  description:
+    "Race control timelines, pit stop durations, and live session tracking for every Formula 1 session.",
+  openGraph: {
+    type: "website",
+    siteName: "F1 Stats",
+    title: "F1 Stats — Formula 1 Session Data",
+    description:
+      "Race control timelines, pit stop durations, and live session tracking for every Formula 1 session.",
+  },
 };
 
 export default function RootLayout({
