@@ -1,388 +1,561 @@
-# Improvements & New Features
+# IMPROVEMENTS.md — F1 Stats
 
-This document captures concrete, actionable improvement ideas grounded in the current codebase architecture. All ideas reference actual files, services, and data fields available today.
-
----
-
-## High Priority (Quick Wins)
-
-These use existing data and infrastructure with minimal net-new work.
-
-### 1. Individual Pit Stop Timeline per Driver
-
-**Description:** The current `pitstops.tsx` + `adaptPitstops.ts` aggregates all stops into a single total duration per driver. Expand the pit stop view to show each individual stop for a driver — lap number, stop number, and duration — in a drill-down panel or expandable row.
-
-**User Value:** Users can see exactly when and how long each stop was, enabling strategic analysis (e.g., undercut windows, slow stops).
-
-**Technical Approach:**
-- The raw `pit` API already returns individual stop records with `lap`, `pit_duration`, and `driver_number`. The `adaptPitstops.ts` util currently discards per-lap detail.
-- Add a `PitstopDetailItem` client component with an expand/collapse toggle (Headless UI `Disclosure` is already installed via `@headlessui/react`).
-- No new API calls needed — data is already fetched in `getPitstops()`.
-
-**Estimated Complexity:** Low (1–2 days)
+Analysis based on actual code review of the full codebase.
+Framework: Next.js 16 / React 19 / TypeScript (strict) / Tailwind CSS / Cloudflare Workers.
 
 ---
 
-### 2. Race Control Event Categorization & Filtering
+## 1. UX / UI
 
-**Description:** The `race_control` API returns a `category` field on every event (see `RaceControlItem.ts`), but `adaptRaceControlToTimeline.ts` drops it entirely. Surface this field and let users filter the timeline by category (e.g., SafetyCar, Flag, DRS).
+### 1.1 Pitstop list not sorted — `src/utils/adaptPitstops.ts`
 
-**User Value:** During a long race, users can zero in on safety car periods or flag events without scrolling through hundreds of messages.
+`adaptPitstops()` returns drivers in raw API response order — whatever the API happens to return. The pit stop tab has no meaningful ordering.
 
-**Technical Approach:**
-- Update `adaptRaceControlToTimeline.ts` to carry the `category` field through to the adapted shape.
-- Add a `CategoryFilter` client component (similar to `TabRaces`) above the timeline in `raceControl.tsx`. Use `useSearchParams` to persist the active filter.
-- Color-code the dot indicator in `RaceControlItem.tsx` by category — already has an `iconBackground` stub that's set to a hardcoded `bg-gray-400`.
+**Fix:** Sort the final `DriverPitstops[]` array by `total_duration` ascending (fastest team strategy first). One line change at the end of `adaptPitstops.ts`:
 
-**Estimated Complexity:** Low (1 day)
+```ts
+return result.sort((a, b) => Number(a.total_duration) - Number(b.total_duration));
+```
 
----
-
-### 3. Dynamic Session Metadata & Styled OG Images
-
-**Description:** The session layout uses a static title `"Session F1"` (`src/app/session/[id]/layout.tsx`) and the OG image (`opengraph-image.tsx`) renders a plain white background with plain text. Both should reflect the actual circuit name, country, and session type.
-
-**User Value:** Sharing a session link on social media shows meaningful, on-brand preview cards rather than a blank placeholder.
-
-**Technical Approach:**
-- Move `generateMetadata` into the session page and fetch session data (already done in `page.tsx` via `getRaces`) to populate `title` and `description` dynamically.
-- Update `opengraph-image.tsx` to apply the carbon dark theme (using inline styles with `var(--carbon)` equivalent hex values since OG renders in a sandboxed edge environment) and include circuit name, country flag, and session type label.
-
-**Estimated Complexity:** Low (half a day)
+Since `total_duration` is already a decimal string produced by `big.ts`, this conversion is safe.
 
 ---
 
-### 4. Fastest Pit Stop Highlight
+### 1.2 Fastest stop callout card is missing — `src/components/pitstops.tsx`
 
-**Description:** In the pit stops tab, visually highlight the single fastest individual stop across the session, surfacing it as a stat above the driver list.
+There is no summary card above the driver list. A "Fastest pit stop" badge (driver name + duration) would answer the most common question about pit stop data at a glance.
 
-**User Value:** Instantly answers the "who had the fastest stop?" question — a key talking point for any race.
-
-**Technical Approach:**
-- In `getPitstops()` the raw records include `pit_duration` per stop. After enrichment, find the min.
-- Add a `FastestStop` server component rendered above `<ListPitstop>` in `pitstops.tsx`, displaying driver name, stop number, lap, and duration in the gold (`--gold: #ffd700`) accent colour already defined in `globals.css`.
-
-**Estimated Complexity:** Low (half a day)
+**Fix:** After `adaptPitstops()`, scan the raw pitstop array (already in memory) for `Math.min(...pitstops.map(p => p.pit_duration))`, then render a highlighted callout `<div>` at the top of `pitstops.tsx` before `<ListPitstop>`. No new API call needed — data is already fetched.
 
 ---
 
-### 5. Functional Search / Filter on Sessions List
+### 1.3 Race Control category field is silently dropped — `src/utils/adaptRaceControlToTimeline.ts`
 
-**Description:** `SearchInput` exists as a component (`src/components/searchInput.tsx`) and is gated behind the `showSearchInput` feature flag in `getFlags.ts`, but the input has no `onChange` handler — it renders a non-functional UI shell.
+`adaptRaceControlToTimeline()` maps `RaceControlTypeItem[]` to `TimelineItem[]` but never carries the `category` field through. The `iconBackground` field is hardcoded to `"bg-gray-400"` for every event type:
 
-**User Value:** Lets users quickly find a circuit or country without scrolling the grid.
+```ts
+// line ~18 in adaptRaceControlToTimeline.ts
+iconBackground: "bg-gray-400",
+```
 
-**Technical Approach:**
-- Make `SearchInput` a proper controlled client component using `useSearchParams` + `useRouter`, filtering the sessions grid by `circuit_short_name` or `country_name` client-side (data is already loaded).
-- Alternatively, pass a `?q=` query param to the server page for server-side filtering.
-- Enable the flag in Edge Config to roll it out.
+The raw API returns useful categories: `SafetyCar`, `Flag`, `DRS`, `Other`.
 
-**Estimated Complexity:** Low (1 day)
-
----
-
-### 6. Sorted Pit Stops (Fastest to Slowest Total)
-
-**Description:** The driver list in the pit stop tab (`listPitstop.tsx`) currently reflects the order drivers appear in the API response. Sort drivers by total pit time ascending so the most efficient team is at the top, like a leaderboard.
-
-**User Value:** Turns the pit stop list from a data dump into an immediately readable ranking.
-
-**Technical Approach:**
-- Add a `.sort((a, b) => a.total_duration - b.total_duration)` step at the end of `adaptPitstops.ts`.
-- Optionally add a rank number badge to `PitstopItem.tsx`, styled with the existing `font-data` monospace class.
-
-**Estimated Complexity:** Very Low (< 1 hour)
+**Fix (two steps):**
+1. Add `category` to `TimelineItem` type and carry it through the adapter.
+2. In `raceControlItem.tsx`, map category → color:
+   - `SafetyCar` → `bg-yellow-500`
+   - `Flag` → `bg-red-500` / `bg-green-500` depending on message content
+   - `DRS` → `bg-blue-500`
+   - default → `bg-gray-400`
 
 ---
 
-### 7. Session Year Selector
+### 1.4 `searchInput.tsx` is completely non-functional
 
-**Description:** The app hardcodes `currentYear` from `src/utils/constants.ts` (`new Date().getFullYear()`). There is no way to browse historical seasons.
+`src/components/searchInput.tsx` renders a styled `<input>` with no `onChange` handler and no logic. It is gated behind the `showSearchInput` feature flag but does nothing when typed into.
 
-**User Value:** Fans want to compare 2024 vs 2025 data, review past championship-deciding races, etc.
-
-**Technical Approach:**
-- Add a `?year=` search param to the home page alongside `?sessionType=`.
-- Pass `year` through to `getRaces()` in `races.ts` (the `QUERIES` string already builds `?year=${currentYear}` — swap the constant for the param).
-- Add a year picker component beside `TabRaces` in `page.tsx`.
-- Cache keys in all services are keyed by year already (e.g., `racesResponse_year_${currentYear}`), so cache isolation is automatic.
-
-**Estimated Complexity:** Low–Medium (1–2 days)
+**Fix:** Implement as a controlled client component that writes to a `?q=` URL param via `useSearchParams` + `useRouter`. In `src/app/page.tsx`, filter the races array before rendering based on `searchParams.get('q')`, matching against `circuit_short_name`, `country_name`, or `location` fields — all of which are available on `RaceItemType`.
 
 ---
 
-## Medium Priority (New Capabilities)
+### 1.5 Session OG image is a blank white card — `src/app/session/[id]/opengraph-image.tsx`
 
-Features that require new service functions or moderate front-end work.
+The session-level OG image renders a plain white background with plain black text "F1 Stats". It does not reflect the actual session. When sharing a session link on messaging apps, the preview card is meaningless.
 
-### 8. Full Session Standings / Position Tab
-
-**Description:** The `position` API endpoint already exists and is used in `winnerByRace.ts` (querying `position<=1`). Expand it to fetch all positions for a session and display a full finishing order table.
-
-**User Value:** The #1 most requested view for any race — the race result.
-
-**Technical Approach:**
-- Add a new `getPositionsBySession(sessionKey)` service in `src/services/positions.ts`, fetching `position?session_key=${sessionKey}` and grouping by `driver_number`, taking the last recorded position for each driver.
-- Add a third tab "Results" to the `tabs` array in `tabs.tsx`.
-- Create a `Results` server component and a `DriverPositionItem` client component with position badge, driver number, name, and team colour if available.
-- Cache with the same Redis + live-bypass pattern used in `raceControl.ts`.
-
-**Estimated Complexity:** Medium (2–3 days)
+**Fix:** Update `opengraph-image.tsx` to:
+- Accept the `[id]` route segment and call `getRaces({ sessionKey: id })`
+- Apply the carbon dark theme (inline hex values — `#0C0C0E` bg, `#E10600` accent, `#F0F0F0` text) because OG rendering runs in a sandboxed edge context without CSS
+- Show circuit name, country, session type label, and date range
 
 ---
 
-### 9. Driver Profile Page
+### 1.6 Session page `<title>` is always "Session F1" — `src/app/session/[id]/layout.tsx`
 
-**Description:** Driver data is fetched frequently (`getDriver` is called per driver in `pitstops.ts` and `winnerByRace.ts`) but only used inline. Build a `/driver/[number]` route that shows a driver's profile: name, team, country, headshot, and their pit stop history across the current season.
+The session layout hardcodes the page title:
 
-**User Value:** Adds depth — users can explore their favourite driver's performance across all sessions.
+```ts
+// src/app/session/[id]/layout.tsx
+export const metadata = { title: "Session F1" };
+```
 
-**Technical Approach:**
-- The `drivers` API supports `?driver_number=` already, returning `full_name`, `headshot_url`, `team_name`, `team_colour`, `country_code`, `name_acronym`.
-- Create `src/app/driver/[number]/page.tsx` as a Server Component. Fetch the driver from `getDriver(number)` and all sessions from `getRaces({})`, then cross-reference pit stop data to show recent sessions participated in.
-- Link to driver profiles from `PitstopItem.tsx` and the winner row in `RaceItem.tsx`.
+Every session tab shows the same browser tab title regardless of the actual circuit.
 
-**Estimated Complexity:** Medium (2–3 days)
+**Fix:** Move `generateMetadata` into `src/app/session/[id]/page.tsx` (which already fetches session data via `getRaces()`) and build a dynamic title:
 
----
-
-### 10. Race-to-Race Pit Stop Comparison Chart
-
-**Description:** A bar or line chart comparing total pit stop time across all races in the season, for all drivers or a selected driver.
-
-**User Value:** Shows how pit strategy performance evolved over the season — a compelling data viz for fans and analysts.
-
-**Technical Approach:**
-- No new API endpoints needed. Call `getPitstops()` for each session key from `getRaces()`.
-- Add a charting library (e.g., `recharts` or `chart.js`) — currently none installed.
-- Render a client component at `/driver/[number]?chart=pitstops` or as a new `/season/stats` page.
-- Be mindful of rate limiter (3 req/s, 30 req/min) in `rateLimiter.ts` when batch-fetching across many sessions — use `Promise.all` with concurrency control.
-
-**Estimated Complexity:** Medium–High (3–4 days)
+```ts
+export async function generateMetadata({ params }) {
+  const sessions = await getRaces({ sessionKey: params.id });
+  const s = sessions[0];
+  return { title: `${s.circuit_short_name} ${s.session_type} — F1 Stats` };
+}
+```
 
 ---
 
-### 11. "Next Race" Countdown Widget
+### 1.7 Error boundary is a generic "Try again" screen — `src/app/error.tsx`
 
-**Description:** Display a countdown timer to the next scheduled session on the home page, derived from upcoming sessions already returned by the `sessions` API.
+`error.tsx` logs to console and shows a single "Try again" button with no context about what failed. In a real session detail, the user does not know if it is the Race Control, the Pit Stops, or the session metadata that errored.
 
-**User Value:** Keeps fans engaged between races — the home page becomes a regular destination, not just a post-race data dump.
-
-**Technical Approach:**
-- `getRaces()` returns `date_start` for all sessions. Filter for sessions in the future and sort ascending to find the next one.
-- Create a `NextRace` client component that calculates remaining time client-side using `useEffect` and `dayjs` (already installed).
-- Render it in `page.tsx` above the tab filters as a persistent banner.
-
-**Estimated Complexity:** Low–Medium (1–2 days)
+**Fix:** Add per-component `error.tsx` boundaries for the two parallel data paths (`raceControl.tsx` + `pitstops.tsx`). Each can display a message specific to its data type (e.g., "Race control data unavailable"). The root `error.tsx` can remain as a global fallback.
 
 ---
 
-### 12. Live Session Position Tracker (Real-Time Leaderboard)
+### 1.8 `switchSessionType.tsx` component is unused dead code — `src/components/switchSessionType.tsx`
 
-**Description:** For live sessions, show a live timing tower with current positions updating every 5 seconds. This is the motorsport equivalent of a live scoreboard.
+This file exists, is never imported anywhere in the project, and duplicates the functionality of `tabRaces.tsx`.
 
-**User Value:** The killer feature for live race viewing — turning this into a companion app during race weekends.
-
-**Technical Approach:**
-- The `position` API can be polled for live data (the live bypass is already implemented in `isSessionLive.ts`).
-- The existing `LiveItem` component already polls via `router.refresh()` every `FETCH_INTERVAL = 5000ms`. Extend this pattern with a new `LiveLeaderboard` client component.
-- Add a "Leaderboard" tab (tab index 3) in `tabs.tsx`, only rendered when `isLiveMode` is true in `page.tsx`.
-- Position changes (up/down vs previous poll) can be tracked in local component state.
-
-**Estimated Complexity:** Medium (2–3 days)
+**Fix:** Delete the file. It adds noise and could cause confusion about which component to extend if session type filtering needs updating.
 
 ---
 
-### 13. Team-Grouped Pit Stops View
+## 2. Performance
 
-**Description:** The driver API returns `team_name` and `team_colour` fields. Group pit stop results by constructor and show total stops and cumulative time per team.
+### 2.1 `raceItem.tsx` fires N parallel requests but there is no deduplication at the render level
 
-**User Value:** Answers "which team had the best pit wall performance?" — a key strategic dimension.
+`src/components/raceItem.tsx` is an async server component called once per race card in `app/page.tsx`. Each instance independently calls:
+- `getWinnerByRace(session_key)` — which in turn calls `getDriver(driver_number)`
+- `isSessionLive(session_key)` (via `isLiveSessionNow`)
 
-**Technical Approach:**
-- Update `adaptPitstops.ts` (or add a sibling `adaptPitstopsByTeam.ts`) to group by `team_name` from the enriched driver data.
-- Add a toggle in `pitstops.tsx` (Drivers / Teams) using a `useSearchParams` approach, matching the existing `TabRaces` pattern.
+When the home page renders 3 race cards (default limit), 3 parallel `getWinnerByRace` calls go out. With a large `year=ALL` query showing many more sessions, this becomes a problem.
 
-**Estimated Complexity:** Medium (1–2 days)
+**Fix:** Because `getWinnerByRace` and `getDriver` already store results in Redis with a 24h TTL, subsequent renders are fast. But the real fix is to deduplicate via React's built-in `cache()` wrapper (available in Next.js 14+):
 
----
+```ts
+// src/services/winnerByRace.ts
+import { cache } from 'react';
+export const getWinnerByRace = cache(async (sessionKey: string) => { ... });
+```
 
-## Low Priority / Future Vision
-
-Ambitious ideas requiring new data sources or significant engineering.
-
-### 14. Multi-Year Historical Comparison Page
-
-**Description:** A dedicated `/compare` route where users can overlay the same circuit across different years — pit stops, race control events, race results.
-
-**User Value:** Deep statistical analysis for fans and motorsport journalists.
-
-**Technical Approach:**
-- Requires fetching `sessions?year=X&circuit=Y` for multiple years. The API supports `year=` already; add `circuit_short_name` filtering or filter client-side.
-- Build a comparison layout with two data columns, one per year, using the existing card/timeline components.
-- Complexity grows with the number of years supported.
-
-**Estimated Complexity:** High (1–2 weeks)
+Same pattern for `getDriver()` and `isSessionLive()`.
 
 ---
 
-### 15. Push Notifications for Live Sessions
+### 2.2 Driver headshots use unspecified `width`/`height` — `src/components/pitstopItem.tsx`
 
-**Description:** Allow users to subscribe to push notifications when a tracked session goes live.
+```tsx
+// pitstopItem.tsx
+<Image src={person.imageUrl} alt={person.name} ... />
+```
 
-**User Value:** Race fans don't have to remember to check — they get notified at session start.
+The `<Image>` in `pitstopItem.tsx` is missing explicit `width` and `height` props. Next.js Image requires these for server-side rendering to reserve layout space and avoid Cumulative Layout Shift (CLS). Without them, the image causes a runtime warning in development and potential CLS in production.
 
-**Technical Approach:**
-- Requires a Web Push implementation (service worker, VAPID keys) and a Vercel Cron Job to check `isSessionLive()` periodically and dispatch notifications.
-- Vercel KV (or Upstash Redis already in use) can store subscription endpoints.
-- This is a significant infrastructure addition outside the current scope.
-
-**Estimated Complexity:** Very High (1–2 weeks)
+**Fix:** Add `width={48} height={48}` (matching the `w-12 h-12` Tailwind classes already on the element). Also ensure the image domain for driver headshots (`www.formula1.com`) remains in `next.config.js` `remotePatterns`.
 
 ---
 
-### 16. Telemetry Visualisation (Speed / Throttle / Brake)
+### 2.3 React Compiler is enabled experimentally but `useMemo`/`useCallback` are still manually used in places
 
-**Description:** If the data API exposes car data (speed, throttle, brake, gear), build a lap telemetry chart for a selected driver.
+`next.config.js` enables `babel-plugin-react-compiler: 1.0.0`. The React Compiler auto-memoizes components, making manual `useMemo`/`useCallback` redundant. A quick scan shows no direct violations in the current codebase, but `@million/lint` is also listed as a dependency (version `1.0.14`) for performance linting and is not currently configured with rules in `.eslintrc.json`.
 
-**User Value:** The gold standard of F1 data apps — used by every serious fan and pundit.
+**Fix:** Add `@million/lint` to the ESLint config so it actively catches un-memoized renders during development:
 
-**Technical Approach:**
-- OpenF1 exposes a `car_data` endpoint with `speed`, `throttle`, `brake`, `drs`, and `n_gear` fields per driver per sample.
-- Add a `getCarData(sessionKey, driverNumber, lap)` service following the same Redis cache + rate-limiter pattern.
-- Render using a line chart (recharts or similar). The data volume is large so sampling or lazy-loading per lap is necessary.
-
-**Estimated Complexity:** Very High (2–3 weeks)
-
----
-
-### 17. Weather During Session
-
-**Description:** Overlay session weather data (air/track temperature, humidity, rainfall flag) alongside race control events on the timeline.
-
-**User Value:** Context for interpreting strategy decisions — a rain flag event hits differently when you can see the conditions that caused it.
-
-**Technical Approach:**
-- OpenF1 exposes a `weather` endpoint per `session_key`.
-- Add a `getWeatherBySession(sessionKey)` service and merge weather snapshots into the race control timeline using matching timestamps.
-- Render weather badges in `RaceControlItem.tsx` at matching time intervals.
-
-**Estimated Complexity:** Medium–High (3–5 days)
+```json
+// .eslintrc.json
+{
+  "plugins": ["million"],
+  "rules": { "million/compiler-rule": "warn" }
+}
+```
 
 ---
 
-### 18. Embedded Social / Commentary Feed
+### 2.4 Live refresh interval is hardcoded to 5s without any termination logic — `src/components/liveItem.tsx`
 
-**Description:** A curated real-time commentary panel (e.g., via a public feed or user-submitted reactions) alongside the race control timeline.
+```ts
+// liveItem.tsx
+const FETCH_INTERVAL = 5000;
+useEffect(() => {
+  const interval = setInterval(() => router.refresh(), FETCH_INTERVAL);
+  return () => clearInterval(interval);
+}, []);
+```
 
-**User Value:** Community watch-along experience — F1 fans are intensely social during races.
+The interval is always 5s regardless of session context. There is no logic to stop refreshing when `isLiveFetching` becomes false (i.e., when the session ends). The `clearInterval` in the cleanup runs only when the component unmounts, not when the live status changes.
 
-**Technical Approach:**
-- Would require an external service (e.g., Supabase Realtime, Pusher, or a new API route with Server-Sent Events) and authentication.
-- Far outside the current stateless RSC + Redis architecture; significant scope increase.
+**Fix:** Add `isLiveFetching` to the `useEffect` dependency array and wrap the interval creation in a condition:
 
-**Estimated Complexity:** Very High (3–4 weeks)
-
----
-
-## Performance & Technical Improvements
-
-### 19. Per-Item Redis Key Strategy for Race Control
-
-**Description:** `getRaceControlBySession` caches the entire race control array under one Redis key. A session with hundreds of events stores and retrieves a large blob. For live sessions, this is re-fetched every 5 seconds from the API with zero caching.
-
-**File:** `src/services/raceControl.ts`
-
-**Fix:** For live sessions, implement an append-only cache strategy — store event count and only fetch events newer than the latest cached timestamp using a `date>` query param if the API supports it. For non-live sessions, the current approach is fine.
-
----
-
-### 20. Sequential Driver Fetches in getPitstops
-
-**Description:** `getPitstops` in `src/services/pitstops.ts` fetches each unique driver with a `for...of` loop (sequential `await`). With 20 drivers, this can add hundreds of milliseconds of serial latency.
-
-**Fix:** Replace with `Promise.all(uniqueDriverNumbers.map(n => getDriver(n)))` to fetch all drivers in parallel. The rate limiter in `rateLimiter.ts` already handles burst limiting so this is safe to do.
+```ts
+useEffect(() => {
+  if (!isLiveFetching) return;
+  const interval = setInterval(() => router.refresh(), FETCH_INTERVAL);
+  return () => clearInterval(interval);
+}, [isLiveFetching, router]);
+```
 
 ---
 
-### 21. Type-Safe API Response Shapes
+### 2.5 Country flag library fetches all flag data on every session card render — `src/components/raceItem.tsx`
 
-**Description:** Service functions return `any` throughout — `pitstops.ts` uses `PitstopData` with `[key: string]: any`, `driver.ts` returns untyped data, and `adaptPitstops.ts` accepts `any[]`. The `RaceControlItem.ts` type is minimal (missing `driver_number`, `flag`, `scope`, `lap_number` fields the API likely returns).
+```ts
+// raceItem.tsx
+import { getCountryFlagSvg } from 'country-flags-svg';
+```
 
-**Fix:** Add typed interfaces for all API response shapes in `src/types/`. Use these in service functions as return types to get compile-time safety and better IDE completion. This also enables catching the `adaptRaceControlToTimeline` dropping of `category` at the type level.
+`country-flags-svg` is a 2.0.0-beta.1 package that bundles all country SVG paths. The import is a server component, so it does not bloat the client bundle — but it executes on every server render of every `raceItem`. The `public/European_version.png` fallback suggests this has had reliability issues.
 
----
-
-### 22. In-Memory Rate Limiter is Not Cloudflare-Safe
-
-**Description:** `src/services/rateLimiter.ts` stores `timestamps` in a module-level array. Cloudflare Workers are isolated per-request (no shared memory between requests), so this rate limiter has no effect in production on Cloudflare Workers and only works locally.
-
-**Fix:** Move rate limiting state to Redis (e.g., an Upstash sliding window counter) or use Upstash's `@upstash/ratelimit` package, which is purpose-built for this pattern and works in edge/serverless environments.
+**Fix:** Precompute and store the flag SVG at build time (or in a constant lookup map) rather than calling the library on each render. Alternatively, replace with a CDN-based country flag (e.g., `https://flagcdn.com/w40/${country_code.toLowerCase()}.png`) and add `flagcdn.com` to `next.config.js` `remotePatterns`. This eliminates the package dependency entirely.
 
 ---
 
-### 23. Cache Key Collision Risk
+### 2.6 `next.config.js` image minimum cache TTL is set to 60 seconds
 
-**Description:** In `races.ts`, when `sessionType` is provided, the Redis key is `racesResponse_session_type_${sessionType}`. This key holds all sessions of that type for the current year, but the key does not include the year. If the year rolls over during a 24h cache window, stale data from the prior year is served.
+```js
+// next.config.js
+images: { minimumCacheTTL: 60 }
+```
 
-**Fix:** Include `currentYear` in all cache keys: `racesResponse_year_${currentYear}_session_type_${sessionType}`.
+Driver headshots and circuit images do not change during a season. A 60-second cache TTL causes unnecessary revalidations.
 
----
-
-### 24. Error Boundaries for Individual Cards
-
-**Description:** If `getWinnerByRace()` throws (e.g., the position API is temporarily unavailable), the entire home page server render fails because the error propagates through the RSC tree in `raceItem.tsx`. Currently there is only one top-level `error.tsx`.
-
-**Fix:** Wrap each `RaceItem` in a per-card Suspense + error boundary so a single failing card degrades gracefully while the rest of the grid renders.
+**Fix:** Increase `minimumCacheTTL` to at least `86400` (24h) to match the Redis data cache, or to `31536000` (1 year) for truly static assets like driver headshots.
 
 ---
 
-## UX & Design Improvements
+## 3. New Functionality
 
-### 25. Team Colour Accent per Driver
+### 3.1 Expand individual pit stop timeline per driver
 
-**Description:** The drivers API returns `team_colour` as a hex string. Use it as the left-border stripe colour on `PitstopItem.tsx` instead of the uniform carbon border, and as the avatar background. This mirrors how real F1 timing towers are colour-coded.
+`adaptPitstops.ts` groups all stops into a single `total_duration` per driver and discards the per-lap detail. The raw data from `getPitstops()` includes `lap_number`, `pit_duration`, and `stop_number` for every individual stop — this is never surfaced in the UI.
 
-**File:** `src/components/pitstopItem.tsx`
-
----
-
-### 26. Animated Live Ticker for Race Control Events
-
-**Description:** For live sessions, new race control messages currently appear only after `router.refresh()`. They pop in abruptly. Add a slide-in entrance animation (currently items use `opacity + translate-y` via `useIsVisible` — extend this to new-event detection) so fresh messages visually announce themselves.
-
-**File:** `src/components/raceControlItem.tsx`, `src/components/liveItem.tsx`
+**Fix:** The `getPitstops()` service already returns the full detail. `adaptPitstops.ts` should retain individual stop records in a nested array. Add a `PitstopDetailItem` client component using the `<Disclosure>` from `@headlessui/react` (already installed) to show/hide per-stop breakdown on tap.
 
 ---
 
-### 27. Mobile-First Card Layout Improvements
+### 3.2 Race Control category filter bar
 
-**Description:** The home page grid is `grid-cols-1 lg:grid-cols-3`. On medium screens (tablets), it stays single-column which wastes horizontal space. Session detail tabs collapse to a `<select>` on mobile but the tab bar has no visual state indicator on desktop beyond an underline.
+As noted in section 1.3, the `category` field is dropped. Beyond the color coding fix, a filter bar above the RC timeline would let users see only `SafetyCar` events, `Flag` events, etc. — valuable during long Grands Prix with 50+ messages.
 
-**Fix:** Add `md:grid-cols-2` to the sessions grid. Enhance the tab active state with a subtle background fill, not just the red underline, for better affordance.
-
----
-
-### 28. Skeleton Loader Polish
-
-**Description:** `src/utils/skeletons.tsx` and `skeleton2.tsx` exist but appear unused — the actual loading skeletons are inlined in `page.tsx` and `session/[id]/layout.tsx`. The inline skeletons are generic rectangles.
-
-**Fix:** Create purpose-built skeleton components matching the actual card layout (two-column data rows, image placeholder for flag, winner row), reducing visual layout shift when data loads.
+**Implementation:** Same pattern as `tabRaces.tsx` — a client component reading `useSearchParams`, writing `?rcCategory=X` to the URL, and filtering in the server component on the next navigation.
 
 ---
 
-### 29. Improved Empty State
+### 3.3 Session comparison view (same circuit, different years)
 
-**Description:** When `racesOrdered?.length > 0` is false on the home page, nothing renders — no message, no illustration. A user filtering by "Sprint" with no sprint sessions in the current year sees a blank page.
+The `getRaces({ sessionType, year })` service can already be called with multiple parameters. A "Compare to previous year" link on any session card would load the same circuit session from `year - 1` and display both sessions side by side (winner, fastest pit stop, key RC events).
 
-**File:** `src/app/page.tsx` line 74
-
-**Fix:** Add an `EmptyState` component with a contextual message: "No Sprint sessions found for {currentYear}" along with a button to reset the filter.
+**Implementation:** Add a `/compare/[sessionA]/[sessionB]` route. Both `getRaces` calls reuse the existing Redis cache, so no new API plumbing is needed.
 
 ---
 
-### 30. Keyboard Shortcuts for Tab Navigation
+### 3.4 Driver standings tab
 
-**Description:** Power users and accessibility tools benefit from keyboard navigation. The tab switch in `tabs.tsx` uses `<Link>` which is accessible, but the session-type filter in `TabRaces.tsx` uses `<button>` with `router.push` — arrow key navigation between options is not implemented.
+The `position` endpoint (`position?session_key=X`) is already called for the race winner (`getWinnerByRace`). Fetching all positions and showing a finishing order table would be a natural addition to the session detail view as a third tab.
 
-**Fix:** Add `role="tablist"` / `role="tab"` ARIA semantics and `onKeyDown` handlers for left/right arrow keys on `TabRaces`, following the WAI-ARIA tab pattern. Headless UI (`@headlessui/react`, already installed) has a `Tab` component that handles this automatically.
+**Implementation:** Add `src/services/positions.ts` following the same cache pattern as `pitstops.ts`. Add a tab option 3 in `tabs.tsx`. No new infrastructure required.
+
+---
+
+### 3.5 Meeting-level aggregation (all sessions in one Grand Prix)
+
+The OpenF1 API returns `meeting_key` on every session. Currently the home page lists individual sessions (Practice 1, Practice 2, Qualifying, Race) as separate cards. Grouping them under their `meeting_key` (e.g., "Monaco Grand Prix 2025") with nested expansion would reduce clutter.
+
+**Implementation:** After `getRaces()`, group results by `meeting_key`. Each group becomes a collapsible card (`<Disclosure>` from Headless UI) listing all sessions. `meeting_key` is already present on `RaceItemType`.
+
+---
+
+## 4. Code & Architecture
+
+### 4.1 `orderRacesByLastest.ts` — typo in filename and function name
+
+The file is named `orderRacesByLastest.ts` (missing an 'e') and the function is `orderRacesLastest` — a typo that also appears in `CLAUDE.md` and `app/page.tsx`. This is a minor but real naming inconsistency that would confuse contributors searching for "latest".
+
+**Fix:** Rename to `orderRacesByLatest.ts` / `orderRacesLatest`. Update all import paths: `app/page.tsx` and `src/utils/__tests__/orderRacesByLatest.test.ts`.
+
+---
+
+### 4.2 Duplicate button/filter styling across three components
+
+`tabRaces.tsx`, `yearSelector.tsx`, and `tabs.tsx` all contain nearly identical active/inactive button Tailwind class logic:
+
+```tsx
+// Repeated pattern across all three
+classNames(
+  isActive ? "bg-f1red text-white border-f1red" : "bg-carbon-mid text-muted border-carbon-border",
+  "px-3 py-1 text-sm font-bold rounded border transition-colors cursor-pointer"
+)
+```
+
+**Fix:** Extract a `FilterButton` compound component in `src/components/filterButton.tsx` that accepts `isActive: boolean` and `label: string`. All three filter components can delegate rendering to it. This is a small, safe refactor with no behavior change.
+
+---
+
+### 4.3 `getFlags.ts` returns a hardcoded `showSearchInput` that is not backed by any flag definition
+
+`src/app/getFlags.ts` resolves `showSearchInput` from the decrypted cookie:
+
+```ts
+return { showSearchInput: overrides?.showSearchInput ?? false };
+```
+
+But `src/flags/index.ts` only defines `showSummerSale`. There is no `showSearchInput` flag definition, meaning there is no way to toggle it from the Vercel flags UI. The cookie value can only be set manually.
+
+**Fix:** Add a proper `showSearchInput` flag definition in `src/flags/index.ts`:
+
+```ts
+export const showSearchInput = flag({
+  key: "show-search-input",
+  decide: async () => (await get("show-search-input")) ?? false,
+});
+```
+
+Then update `getFlags.ts` to use `showSearchInput.decide()` instead of reading the cookie directly.
+
+---
+
+### 4.4 `big.ts` — `add()` function does not handle edge cases
+
+```ts
+// src/utils/big.ts
+export function add(a: number | string, b: number | string): number
+```
+
+The function uses BigInt arithmetic to avoid floating-point drift. However, it does not guard against:
+- `NaN` inputs (e.g., if `pit_duration` is missing from the API response)
+- Empty string inputs (which `BigInt("")` would throw on)
+- Negative values (valid in theory but untested)
+
+**Fix:** Add input validation at the top of `add()`:
+
+```ts
+if (isNaN(Number(a)) || isNaN(Number(b))) return 0;
+```
+
+And add test cases to `src/utils/__tests__/big.test.ts` covering these inputs.
+
+---
+
+### 4.5 `cache.ts` — TTL constants are not typed
+
+```ts
+// src/services/cache.ts
+export const TTL_CACHE = 86400;
+export const TTL_LIVE_STATUS = 30;
+```
+
+These are plain numbers with no units annotation. A developer new to the codebase cannot tell if `86400` is seconds, milliseconds, or minutes without reading the Upstash Redis documentation.
+
+**Fix:** Add inline comments or rename to `TTL_CACHE_SECONDS` / `TTL_LIVE_STATUS_SECONDS`. Also consider a typed constant object:
+
+```ts
+export const TTL = {
+  SESSION_DATA_S: 86_400,   // 24 hours
+  LIVE_STATUS_S: 30,        // 30 seconds — shared dedup window
+} as const;
+```
+
+---
+
+### 4.6 `src/utils/skeletons.tsx` and `skeleton2.tsx` — parallel skeleton files with no naming convention
+
+Two separate skeleton files exist:
+- `skeletons.tsx` → `LoadingSkeleton`
+- `skeleton2.tsx` → `LoadingSkeletonMain`
+
+The naming "skeleton2" is opaque. It is unclear which to use where without reading both.
+
+**Fix:** Rename `skeleton2.tsx` to `skeletonCard.tsx` and export `LoadingSkeletonCard`. Co-locate both in a `src/components/skeletons/` directory or merge into a single `src/utils/skeletons.tsx` with named exports.
+
+---
+
+### 4.7 `rateLimiter.ts` — Redis singleton may leak connections on Cloudflare Workers
+
+```ts
+// src/services/rateLimiter.ts
+let redisClient: Redis | null = null;
+function getRedisClient() {
+  if (!redisClient) redisClient = new Redis({ ... });
+  return redisClient;
+}
+```
+
+This module-level singleton works correctly in long-lived Node.js processes but can behave unexpectedly on Cloudflare Workers, where isolates are periodically recycled and the singleton may reference a stale connection. `@upstash/redis` uses the REST API (stateless HTTP), so this is low risk today — but the pattern is architecturally fragile.
+
+**Fix:** Since `@upstash/redis` REST clients are stateless, the singleton provides no real benefit (there is no persistent TCP connection). Simplify to instantiate the client per request or at module level without the lazy singleton wrapper.
+
+---
+
+## 5. Testing
+
+### 5.1 Zero component tests — all 13 tests cover services and utils only
+
+The test suite (`pnpm test`) covers:
+- All 6 service functions (`races`, `pitstops`, `raceControl`, `driver`, `winnerByRace`, `isSessionLive`)
+- All 6 utility functions
+
+There are no tests for any component in `src/components/`. Client components with interactivity (`tabs.tsx`, `tabRaces.tsx`, `yearSelector.tsx`, `liveItem.tsx`) have zero test coverage.
+
+**Fix (priority order):**
+1. `liveItem.tsx` — test that `router.refresh()` is called every 5s when `isLiveFetching=true`, and not called when `false`. Use `jest.useFakeTimers()`.
+2. `tabs.tsx` — test that navigating to `?selectedTab=2` renders the Pit Stops label as active.
+3. `tabRaces.tsx` — test that `?sessionType=Race` activates the Race button.
+
+Tools already available: Jest 29, `@swc/jest`. Add `@testing-library/react` and `@testing-library/user-event` as dev dependencies.
+
+---
+
+### 5.2 No E2E or smoke tests for the Cloudflare Workers deployment
+
+The app deploys to Cloudflare Workers via OpenNext. There are no E2E tests that verify the deployed build renders correctly. If the `open-next.config.ts` wrapping breaks (e.g., after a Next.js or OpenNext upgrade), no automated check would catch it before users see a blank page.
+
+**Fix:** Add a minimal Playwright or Puppeteer smoke test that:
+1. Hits the production URL (or `wrangler dev` local URL)
+2. Asserts the session list is rendered
+3. Navigates to one session detail and asserts Race Control or Pit Stops are present
+
+Run this test in CI after `wrangler deploy`.
+
+---
+
+### 5.3 `adaptRaceControlToTimeline.test.ts` does not test the `category` field
+
+The existing test for `adaptRaceControlToTimeline` validates date formatting and message content but does not assert on `iconBackground` or `category`. After fixing section 1.3 (adding category to the adapter), there is no test to prevent a regression.
+
+**Fix:** Add a test case asserting that input `category: "SafetyCar"` produces `iconBackground: "bg-yellow-500"` in the output.
+
+---
+
+## 6. SEO
+
+### 6.1 Home page `<title>` and `<description>` are generic — `src/app/layout.tsx`
+
+```ts
+// src/app/layout.tsx
+export const metadata = {
+  title: "F1 Stats",
+  description: "F1 Stats"
+};
+```
+
+Both title and description are identical single-word strings. This is the metadata search engines index.
+
+**Fix:**
+```ts
+export const metadata = {
+  title: "F1 Stats — Formula 1 Session Data",
+  description: "Race control timelines, pit stop durations, and live session tracking for every Formula 1 session.",
+  openGraph: {
+    type: "website",
+    siteName: "F1 Stats",
+  }
+};
+```
+
+---
+
+### 6.2 Session pages have no structured data (JSON-LD)
+
+Session pages contain structured event data (circuit name, country, start/end date, session type) that could be marked up with `schema.org/SportsEvent` or `schema.org/Event` JSON-LD. This would allow Google to surface rich results (event cards) for F1 race searches.
+
+**Fix:** In `src/app/session/[id]/page.tsx`, inject a `<script type="application/ld+json">` block after fetching session data:
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "SportsEvent",
+  "name": "Monaco Grand Prix — Race",
+  "startDate": "2025-05-25T13:00:00Z",
+  "endDate": "2025-05-25T15:30:00Z",
+  "location": { "@type": "Place", "name": "Circuit de Monaco" }
+}
+```
+
+---
+
+### 6.3 No `robots.txt` or `sitemap.xml`
+
+The `public/` directory contains `f1logo.png`, `European_version.png`, and `favicon.ico` — but no `robots.txt` or `sitemap.xml`. Without a sitemap, search engines must discover session URLs by crawling, which is inefficient for a paginated/filtered site.
+
+**Fix:** Add `src/app/sitemap.ts` (Next.js App Router static sitemap handler) that calls `getRaces()` and returns all session URLs. Add `src/app/robots.ts` returning a permissive policy for the main routes and blocking `/.well-known/vercel/flags`.
+
+---
+
+### 6.4 OG image for default route is not customized — `src/app/opengraph-image.tsx`
+
+The home-level OG image (`src/app/opengraph-image.tsx`) renders plain text on a white background with no F1 branding, identical to the session-level OG image issue in 1.5.
+
+**Fix:** Apply the carbon dark theme, include the F1 logo (already in `public/f1logo.png`), and add a tagline. This image appears when the root URL is shared on social media.
+
+---
+
+## 7. Accessibility
+
+### 7.1 Live badge has no `aria-live` region — `src/components/liveItem.tsx`
+
+The live badge with the animated ping dot updates via `router.refresh()` every 5 seconds. Screen readers are not notified of these updates because there is no `aria-live` region.
+
+**Fix:** Wrap the live status container in a `<div aria-live="polite" aria-atomic="true">`. Use `"polite"` (not `"assertive"`) to avoid interrupting the user mid-sentence.
+
+---
+
+### 7.2 Tab navigation uses `<select>` on mobile without a label — `src/components/tabs.tsx`
+
+```tsx
+// tabs.tsx
+<select onChange={...} value={selectedTab}>
+  <option value="1">Race Control</option>
+  <option value="2">Pit Stops</option>
+</select>
+```
+
+The mobile `<select>` element has no `<label>` associated with it (no `id` + `htmlFor` pairing, no `aria-label`). Screen readers will announce it as an unlabeled control.
+
+**Fix:** Add `aria-label="Select session view"` to the `<select>` element.
+
+---
+
+### 7.3 `yearSelector.tsx` buttons have no `aria-pressed` state
+
+The year filter buttons visually indicate the active year with a red background, but do not communicate state programmatically.
+
+**Fix:** Add `aria-pressed={isActive}` to each year button element.
+
+---
+
+## 8. Developer Experience
+
+### 8.1 `.env.example` does not document `FLAGS_SECRET`
+
+`src/app/getFlags.ts` calls `decrypt(cookie, process.env.FLAGS_SECRET)` to read flag overrides. `FLAGS_SECRET` is not listed in `.env.example` or in `docs/ENVIRONMENT.md`.
+
+**Fix:** Add `FLAGS_SECRET=your-32-char-secret-here` to `.env.example` with a comment explaining it is used for Vercel feature flag override cookies and can be any random 32-character string in local development.
+
+---
+
+### 8.2 Year selector is hardcoded — `src/components/yearSelector.tsx`
+
+```tsx
+// yearSelector.tsx
+const YEARS = [2023, 2024, 2025, 2026];
+```
+
+This list is hardcoded. When the 2027 season begins, a developer must remember to update this file manually.
+
+**Fix:** Drive the year list from `src/utils/constants.ts`:
+
+```ts
+export const AVAILABLE_YEARS = Array.from(
+  { length: currentYear - 2022 },
+  (_, i) => 2023 + i
+);
+```
+
+`constants.ts` already exports `currentYear = new Date().getFullYear()`, so the list will automatically extend on January 1st each year.
+
+---
+
+### 8.3 `wrangler.json` `compatibility_date` is `2024-11-01` but will become stale
+
+Cloudflare Workers `compatibility_date` pins the runtime behavior. As of the current codebase it is set to `2024-11-01`. This is not automatically updated.
+
+**Fix:** Document in `docs/DEPLOYMENT.md` that `compatibility_date` should be updated quarterly and add a comment in `wrangler.json` referencing the Cloudflare compatibility flags changelog URL.
+
+---
+
+### 8.4 No pre-commit hook or CI lint/test step
+
+The repo has no `.husky/` configuration, no `lint-staged`, and no GitHub Actions workflow. ESLint and Jest run manually (`pnpm lint`, `pnpm test`). A broken import or type error can be committed and only noticed at build time.
+
+**Fix:** Add a minimal GitHub Actions workflow (`.github/workflows/ci.yml`) that runs `pnpm lint && pnpm test` on every push to `main` and on every pull request. Alternatively, add a `pre-commit` hook via Husky + lint-staged to at least run ESLint on staged files.
+
+---
+
+*Last updated: 2026-04-04. Based on codebase at commit `fdf7629`.*

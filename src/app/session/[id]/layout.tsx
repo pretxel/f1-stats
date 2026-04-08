@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
 import Tabs from "@/components/tabs";
 import { Suspense } from "react";
-
-export const metadata: Metadata = {
-  title: "Session F1",
-  description: "Session F1",
-};
 
 export default function SessionLayout({
   children,
