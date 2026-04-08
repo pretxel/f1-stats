@@ -25,14 +25,16 @@ export default function LiveItem({ isLiveFetching }: LiveItemProps) {
   }, [router, isLiveFetching]);
 
   return (
-    <div className="flex items-center gap-1.5">
-      <span className="relative flex h-2 w-2 flex-none">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-f1red opacity-75" />
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-f1red" />
-      </span>
-      <span className="font-data text-[10px] font-bold tracking-[0.25em] uppercase text-f1red">
-        LIVE
-      </span>
+    <div aria-live="polite" aria-atomic="true">
+      <div className="flex items-center gap-1.5">
+        <span className="relative flex h-2 w-2 flex-none">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-f1red opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-f1red" />
+        </span>
+        <span className="font-data text-[10px] font-bold tracking-[0.25em] uppercase text-f1red">
+          LIVE
+        </span>
+      </div>
     </div>
   );
 }
