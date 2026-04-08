@@ -24,8 +24,9 @@ export default async function Image({
   try {
     const apiEndpoint = process.env.API_ENDPOINT;
     if (apiEndpoint) {
+      const base = apiEndpoint.endsWith("/") ? apiEndpoint : `${apiEndpoint}/`;
       const res = await fetch(
-        `${apiEndpoint}sessions?session_key=${id}`,
+        `${base}sessions?session_key=${id}`,
         { next: { revalidate: 3600 } }
       );
       if (res.ok) {

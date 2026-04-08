@@ -13,7 +13,6 @@ export default function LiveItem({ isLiveFetching }: LiveItemProps) {
   const router = useRouter();
 
   const apiCall = async (router: AppRouterInstance) => {
-    console.log("FETCH LIVE DATA CLIENT-- " + new Date().getTime());
     router.refresh();
   };
 
