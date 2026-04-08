@@ -69,6 +69,29 @@ export default async function Session({
 
   return (
     <section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SportsEvent",
+            name: `${race[0].circuit_short_name} ${race[0].session_type}`,
+            sport: "Formula One",
+            startDate: new Date(race[0].date_start).toISOString(),
+            endDate: new Date(race[0].date_end).toISOString(),
+            location: {
+              "@type": "Place",
+              name: race[0].circuit_short_name,
+              address: {
+                "@type": "PostalAddress",
+                addressCountry: race[0].country_code,
+                addressLocality: race[0].location,
+              },
+            },
+            eventStatus: "https://schema.org/EventScheduled",
+          }),
+        }}
+      />
       {isLiveMode && (
         <div className="mb-6">
           <LiveItem isLiveFetching={true} />
