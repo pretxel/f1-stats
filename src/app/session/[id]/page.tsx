@@ -5,6 +5,7 @@ import PitStops from "@/components/pitstops";
 import { getRaces } from "@/services/races";
 import LiveItem from "@/components/liveItem";
 import isLiveSessionNow from "@/utils/isLiveSessionNow";
+import { jsonLdSafe } from "@/utils/jsonLdSafe";
 import type { RaceItemType } from "@/types/RaceItemType";
 
 interface TabJSXElement {
@@ -72,7 +73,7 @@ export default async function Session({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "SportsEvent",
             name: `${race[0].circuit_short_name} ${race[0].session_type}`,

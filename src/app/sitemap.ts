@@ -1,13 +1,14 @@
 import type { MetadataRoute } from "next";
 import { getRaces } from "@/services/races";
+import type { RaceItemType } from "@/types/RaceItemType";
 
 const BASE_URL = "https://f1.edselserrano.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let sessions: Array<{ session_key: string; date_start: Date }> = [];
+  let sessions: RaceItemType[] = [];
 
   try {
-    sessions = await getRaces({});
+    sessions = (await getRaces({})) as RaceItemType[];
   } catch {
     sessions = [];
   }
