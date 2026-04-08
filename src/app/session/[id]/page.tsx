@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React, { Suspense } from "react";
 import RaceControl from "@/components/raceControl";
 import PitStops from "@/components/pitstops";
@@ -12,6 +13,34 @@ const Tabs = (sessionKey: string, liveMode: boolean): TabJSXElement => ({
   1: <RaceControl session_key={sessionKey} liveMode={liveMode} />,
   2: <PitStops session_key={sessionKey} liveMode={liveMode} />,
 });
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const race = await getRaces({ sessionKey: id });
+    if (!race || race.length === 0) {
+      return { title: "Session — F1 Stats" };
+    }
+    const s = race[0];
+    const title = `${s.circuit_short_name} ${s.session_type} — F1 Stats`;
+    const description = `${s.session_type} at ${s.circuit_short_name}, ${s.country_name}. Session data including race control events and pit stop analysis.`;
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: "website",
+      },
+    };
+  } catch {
+    return { title: "Session — F1 Stats" };
+  }
+}
 
 export default async function Session({ params, searchParams }: any) {
   const paramsAwaited = await params;

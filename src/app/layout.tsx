@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     title: "F1 Stats — Formula 1 Session Data",
     description:
       "Race control timelines, pit stop durations, and live session tracking for every Formula 1 session.",
+    url: "https://f1.edselserrano.com",
   },
 };
 
@@ -40,15 +41,6 @@ export default function RootLayout({
   const shouldInjectToolbar = process.env.NODE_ENV === "development";
   return (
     <html lang="en" className={`${barlow.variable} ${jetbrainsMono.variable}`}>
-      <head>
-        <meta property="og:image" content="<generated>" />
-        <meta property="og:image:alt" content="F1 Stats" />
-        <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:site_name" content="F1" />
-        <meta property="og:url" content="https://f1.edselserrano.com/" />
-      </head>
       <body className="font-display flex min-h-screen flex-col bg-carbon">
         {/* Header */}
         <header className="relative z-10 w-full border-b border-carbon-border bg-carbon-light">
