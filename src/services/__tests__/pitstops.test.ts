@@ -75,6 +75,8 @@ describe("getPitstops", () => {
     it("fetches from API on cache miss, attaches driver data, and caches result", async () => {
       getRedis().get.mockResolvedValue(null);
       (rateLimitedFetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 200,
         json: jest.fn().mockResolvedValue(samplePitstops),
       });
       (getDriver as jest.Mock).mockImplementation((num: number) =>
@@ -101,6 +103,8 @@ describe("getPitstops", () => {
       ];
       getRedis().get.mockResolvedValue(null);
       (rateLimitedFetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 200,
         json: jest.fn().mockResolvedValue(multiplePitstopsForSameDriver),
       });
       (getDriver as jest.Mock).mockResolvedValue(driverHAM);
@@ -119,6 +123,8 @@ describe("getPitstops", () => {
 
     it("fetches from API without reading or writing Redis", async () => {
       (rateLimitedFetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 200,
         json: jest.fn().mockResolvedValue(samplePitstops),
       });
       (getDriver as jest.Mock).mockResolvedValue(driverHAM);

@@ -2,6 +2,7 @@ import { getRaceControlBySession } from "@/services/raceControl";
 import RaceControlItem from "./raceControlItem";
 import { orderRaceControl } from "@/utils/orderRaceControl";
 import adaptRaceControlToTimeline from "@/utils/adaptRaceControlToTimeline";
+import EmptyState from "./emptyState";
 
 export type RaceControlProp = {
   session_key: string;
@@ -17,6 +18,17 @@ const timeLineAdaptedRequest = async (sessionKey: string) => {
 
 export default async function RaceControl(props: RaceControlProp) {
   const timeLineAdapted = await timeLineAdaptedRequest(props.session_key);
+
+  if (timeLineAdapted.length === 0) {
+    return (
+      <div className="max-w-2xl">
+        <EmptyState
+          title="No events"
+          detail="Race control has no messages for this session."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl">

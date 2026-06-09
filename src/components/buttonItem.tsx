@@ -1,12 +1,15 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ButtonRaceItem(props: { session_key: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const goSession = () => {
     window.scrollTo(0, 0);
-    router.push("/session/" + props.session_key);
+    const qs = searchParams.toString();
+    const from = qs ? `?from=${encodeURIComponent(qs)}` : "";
+    router.push("/session/" + props.session_key + from);
   };
 
   return (

@@ -1,5 +1,14 @@
 import { isSessionLive } from "../isSessionLive";
 
+jest.mock("@upstash/redis", () => ({
+  Redis: {
+    fromEnv: jest.fn().mockReturnValue({
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn().mockResolvedValue("OK"),
+    }),
+  },
+}));
+
 jest.mock("../races", () => ({
   getRaces: jest.fn(),
 }));

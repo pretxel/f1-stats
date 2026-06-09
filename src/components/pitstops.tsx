@@ -1,6 +1,7 @@
 import { getPitstops } from "@/services/pitstops";
 import ListPitstop from "./listPitstop";
 import adaptPitstops from "@/utils/adaptPitstops";
+import EmptyState from "./emptyState";
 
 export type PitStopProps = {
   session_key: string;
@@ -10,6 +11,17 @@ export type PitStopProps = {
 export default async function PitStops(props: PitStopProps) {
   const pitstops = await getPitstops(props.session_key);
   const people = adaptPitstops(pitstops);
+
+  if (people.length === 0) {
+    return (
+      <div className="max-w-2xl">
+        <EmptyState
+          title="No pit data"
+          detail="No pit stops recorded for this session."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl">

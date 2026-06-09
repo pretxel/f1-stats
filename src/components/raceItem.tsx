@@ -8,13 +8,7 @@ import { getWinnerByRace } from "@/services/winnerByRace";
 import LiveItem from "./liveItem";
 import ButtonRaceItem from "./buttonItem";
 import isLiveSessionNow from "@/utils/isLiveSessionNow";
-
-const SESSION_TYPE_LABELS: Record<string, string> = {
-  Race: "RACE",
-  Qualifying: "QUALI",
-  Practice: "FP",
-  Sprint: "SPR",
-};
+import { sessionTypeLabel } from "@/utils/sessionTypeLabels";
 
 export default async function RaceItem(props: RaceItemType) {
   const urlImage = findFlagUrlByIso3Code(props.country_code);
@@ -24,8 +18,7 @@ export default async function RaceItem(props: RaceItemType) {
     new Date(props.date_end)
   );
 
-  const sessionLabel =
-    SESSION_TYPE_LABELS[props.session_name] ?? props.session_name.toUpperCase();
+  const sessionLabel = sessionTypeLabel(props.session_name);
 
   return (
     <article className="group relative bg-carbon-light stripe-left hover:border-l-f1red-dark transition-all duration-300 overflow-hidden">

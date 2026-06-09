@@ -21,7 +21,7 @@ export default function TabRaces(props: TabRacesProps) {
   };
 
   return (
-    <div className="flex items-center gap-1 mb-8">
+    <div className="flex flex-wrap items-center gap-1">
       <button
         className={`font-data text-[10px] tracking-[0.25em] uppercase px-4 py-2 transition-all duration-200 border ${
           !activeSessionType

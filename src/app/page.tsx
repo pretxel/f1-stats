@@ -10,6 +10,7 @@ import { getFlags } from "./getFlags";
 import { orderRacesLastest } from "@/utils/orderRacesByLastest";
 import TabRaces from "@/components/tabRaces";
 import YearSelector from "@/components/yearSelector";
+import SessionGrid from "@/components/sessionGrid";
 
 export const revalidate = 3600;
 
@@ -41,37 +42,61 @@ const Home = async ({ searchParams }: any) => {
         <ConfidentialFlagValues values={values} />
       </Suspense>
 
-      {values.showSearchInput && <SearchInput />}
+      {/* Unified filter bar */}
+      <div className="mb-8 pb-6 border-b border-carbon-border flex flex-wrap items-end gap-x-10 gap-y-5">
+        <div>
+          <span className="block font-data text-[9px] tracking-[0.3em] uppercase text-muted-dark mb-2">
+            Season
+          </span>
+          <Suspense
+            fallback={
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-8 w-16 bg-carbon-mid animate-pulse"
+                  />
+                ))}
+              </div>
+            }
+          >
+            <YearSelector years={[2023, 2024, 2025, 2026]} />
+          </Suspense>
+        </div>
 
-      <Suspense
-        fallback={
-          <div className="flex gap-1 mb-4">
-            {[...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                className="h-8 w-16 bg-carbon-mid animate-pulse"
-              />
-            ))}
-          </div>
-        }
-      >
-        <YearSelector years={[2023, 2024, 2025, 2026]} />
-      </Suspense>
+        <div>
+          <span className="block font-data text-[9px] tracking-[0.3em] uppercase text-muted-dark mb-2">
+            Session
+          </span>
+          <Suspense
+            fallback={
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-8 w-24 bg-carbon-mid animate-pulse"
+                  />
+                ))}
+              </div>
+            }
+          >
+            <TabRaces
+              sessionTypes={["Practice", "Qualifying", "Race", "Sprint"]}
+            />
+          </Suspense>
+        </div>
 
-      <Suspense
-        fallback={
-          <div className="flex gap-1 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="h-8 w-24 bg-carbon-mid animate-pulse"
-              />
-            ))}
+        {values.showSearchInput && (
+          <div className="flex-1 min-w-[240px]">
+            <span className="block font-data text-[9px] tracking-[0.3em] uppercase text-muted-dark mb-2">
+              Search
+            </span>
+            <Suspense fallback={null}>
+              <SearchInput />
+            </Suspense>
           </div>
-        }
-      >
-        <TabRaces sessionTypes={["Practice", "Qualifying", "Race"]} />
-      </Suspense>
+        )}
+      </div>
 
       <Suspense
         fallback={
@@ -85,27 +110,29 @@ const Home = async ({ searchParams }: any) => {
           </div>
         }
       >
-        <ul
-          role="list"
-          className="grid grid-cols-1 gap-4 lg:grid-cols-3"
+        <SessionGrid
+          sessions={(racesOrdered ?? []).map((race: RaceItemType) => ({
+            session_key: race.session_key,
+            circuit_short_name: race.circuit_short_name,
+            country_name: race.country_name,
+            location: race.location,
+          }))}
         >
-          {racesOrdered?.length > 0 &&
-            racesOrdered.map((race: RaceItemType) => (
-              <li key={race.session_key}>
-                <RaceItem
-                  circuit_short_name={race.circuit_short_name}
-                  country_name={race.country_name}
-                  date_start={race.date_start}
-                  date_end={race.date_end}
-                  location={race.location}
-                  session_key={race.session_key}
-                  session_name={race.session_name}
-                  country_code={race.country_code}
-                  session_type={race.session_type}
-                />
-              </li>
-            ))}
-        </ul>
+          {(racesOrdered ?? []).map((race: RaceItemType) => (
+            <RaceItem
+              key={race.session_key}
+              circuit_short_name={race.circuit_short_name}
+              country_name={race.country_name}
+              date_start={race.date_start}
+              date_end={race.date_end}
+              location={race.location}
+              session_key={race.session_key}
+              session_name={race.session_name}
+              country_code={race.country_code}
+              session_type={race.session_type}
+            />
+          ))}
+        </SessionGrid>
       </Suspense>
     </>
   );

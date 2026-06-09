@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import React, { Suspense } from "react";
+import Link from "next/link";
 import RaceControl from "@/components/raceControl";
 import PitStops from "@/components/pitstops";
+import SessionHeader from "@/components/sessionHeader";
+import Tabs from "@/components/tabs";
 import { getRaces } from "@/services/races";
-import LiveItem from "@/components/liveItem";
 import isLiveSessionNow from "@/utils/isLiveSessionNow";
 import { jsonLdSafe } from "@/utils/jsonLdSafe";
 import type { RaceItemType } from "@/types/RaceItemType";
@@ -11,7 +13,7 @@ import type { RaceItemType } from "@/types/RaceItemType";
 interface TabJSXElement {
   [key: number]: React.JSX.Element;
 }
-const Tabs = (sessionKey: string, liveMode: boolean): TabJSXElement => ({
+const TabContent = (sessionKey: string, liveMode: boolean): TabJSXElement => ({
   1: <RaceControl session_key={sessionKey} liveMode={liveMode} />,
   2: <PitStops session_key={sessionKey} liveMode={liveMode} />,
 });
@@ -50,7 +52,7 @@ export default async function Session({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ selectedTab?: string }>;
+  searchParams: Promise<{ selectedTab?: string; from?: string }>;
 }) {
   const paramsAwaited = await params;
   const searchParamsAwaited = await searchParams;
@@ -67,6 +69,15 @@ export default async function Session({
     new Date(race[0].date_start),
     new Date(race[0].date_end)
   );
+
+  // Rebuild the listing URL from the `from` param; URLSearchParams re-encodes
+  // whatever arrives so the href stays a same-origin listing link.
+  let backHref = "/";
+  if (typeof searchParamsAwaited?.from === "string" && searchParamsAwaited.from) {
+    const fromParams = new URLSearchParams(searchParamsAwaited.from);
+    const qs = fromParams.toString();
+    if (qs) backHref = `/?${qs}`;
+  }
 
   return (
     <section>
@@ -93,26 +104,39 @@ export default async function Session({
           }),
         }}
       />
-      {isLiveMode && (
-        <div className="mb-6">
-          <LiveItem isLiveFetching={true} />
-        </div>
-      )}
+      <Link
+        href={backHref}
+        className="inline-flex items-center gap-2 mb-4 font-data text-[10px] tracking-[0.25em] uppercase text-muted hover:text-f1red transition-colors duration-200"
+      >
+        ◀ Sessions
+      </Link>
+
+      <SessionHeader race={race[0]} />
 
       <Suspense
         fallback={
-          <div className="space-y-3">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="h-12 bg-carbon-light border-l-[3px] border-carbon-border animate-pulse"
-              />
-            ))}
-          </div>
+          <div className="h-12 bg-carbon-mid border-b border-carbon-border animate-pulse mb-8" />
         }
       >
-        {Tabs(idSession, isLiveMode)[selectedTab]}
+        <Tabs />
       </Suspense>
+
+      <div key={selectedTab} className="tab-fade-in">
+        <Suspense
+          fallback={
+            <div className="space-y-3">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 bg-carbon-light border-l-[3px] border-carbon-border animate-pulse"
+                />
+              ))}
+            </div>
+          }
+        >
+          {TabContent(idSession, isLiveMode)[selectedTab]}
+        </Suspense>
+      </div>
     </section>
   );
 }

@@ -31,6 +31,8 @@ describe("getPitstops", () => {
     ];
 
     global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
       json: jest.fn().mockResolvedValue(sampleResponse),
     } as unknown as Response);
 

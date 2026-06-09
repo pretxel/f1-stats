@@ -12,6 +12,13 @@ export default function Tabs() {
   const searchParams = useSearchParams();
   const selectedTab = parseInt(searchParams.get("selectedTab") || "1");
 
+  // Merge into existing params so `from` (and anything else) survives tab switches
+  const tabHref = (tab: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("selectedTab", String(tab));
+    return `?${params.toString()}`;
+  };
+
   return (
     <div className="mb-8">
       {/* Mobile select */}
@@ -24,7 +31,7 @@ export default function Tabs() {
           name="tabs"
           className="block w-full bg-carbon-light border border-carbon-border text-chromium font-data text-xs tracking-widest py-2 px-3 focus:border-f1red focus:outline-none"
           defaultValue={selectedTab}
-          onChange={(e) => router.push("?selectedTab=" + e.target.value)}
+          onChange={(e) => router.push(tabHref(parseInt(e.target.value)))}
         >
           {tabs.map((tab, tabIdx) => (
             <option key={tab.name} value={tabIdx + 1}>
@@ -42,7 +49,7 @@ export default function Tabs() {
             return (
               <Link
                 key={tab.name}
-                href={`?selectedTab=${tabIdx + 1}`}
+                href={tabHref(tabIdx + 1)}
                 className={`relative font-data text-[11px] tracking-[0.25em] uppercase px-6 py-4 transition-colors duration-200 ${
                   isActive
                     ? "text-chromium"
