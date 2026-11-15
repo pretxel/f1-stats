@@ -60,7 +60,7 @@ describe("getRaces", () => {
     it("returns data from Redis when session key param matches", async () => {
       const sessionKey = "9507";
       const cachedData = {
-        query: `${API_ENDPOINT}sessions?year=${CURRENT_YEAR}&session_key=${sessionKey}`,
+        query: `${API_ENDPOINT}sessions?session_key=${sessionKey}`,
         data: sampleRaces,
       };
       getRedis().get.mockResolvedValue(JSON.stringify(cachedData));
@@ -130,7 +130,7 @@ describe("getRaces", () => {
       await getRaces({ sessionKey: "9507" });
 
       expect(rateLimitedFetch).toHaveBeenCalledWith(
-        `${API_ENDPOINT}sessions?year=${CURRENT_YEAR}&session_key=9507`
+        `${API_ENDPOINT}sessions?session_key=9507`
       );
       expect(getRedis().set).toHaveBeenCalledWith(
         "racesResponse_session_key_9507",

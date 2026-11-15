@@ -4,7 +4,8 @@ import Link from "next/link";
 import RaceControl from "@/components/raceControl";
 import PitStops from "@/components/pitstops";
 import SessionHeader from "@/components/sessionHeader";
-import Tabs from "@/components/tabs";
+import FlagStrip from "@/components/flagStrip";
+import SegmentedLinks from "@/components/segmentedLinks";
 import { getRaces } from "@/services/races";
 import isLiveSessionNow from "@/utils/isLiveSessionNow";
 import { jsonLdSafe } from "@/utils/jsonLdSafe";
@@ -13,10 +14,12 @@ import type { RaceItemType } from "@/types/RaceItemType";
 interface TabJSXElement {
   [key: number]: React.JSX.Element;
 }
-const TabContent = (sessionKey: string, liveMode: boolean): TabJSXElement => ({
-  1: <RaceControl session_key={sessionKey} liveMode={liveMode} />,
-  2: <PitStops session_key={sessionKey} liveMode={liveMode} />,
+const TabContent = (race: RaceItemType, liveMode: boolean): TabJSXElement => ({
+  1: <RaceControl session_key={race.session_key} gmt_offset={race.gmt_offset} liveMode={liveMode} />,
+  2: <PitStops session_key={race.session_key} liveMode={liveMode} />,
 });
+
+const TABS = ["Race control", "Pit stops"];
 
 export async function generateMetadata({
   params,
@@ -52,14 +55,13 @@ export default async function Session({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ selectedTab?: string; from?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const paramsAwaited = await params;
   const searchParamsAwaited = await searchParams;
 
-  const selectedTab = searchParamsAwaited?.selectedTab
-    ? parseInt(searchParamsAwaited?.selectedTab as string)
-    : 1;
+  const parsedTab = parseInt(searchParamsAwaited?.selectedTab ?? "1");
+  const selectedTab = parsedTab === 2 ? 2 : 1;
   const idSession = paramsAwaited.id;
   const race = await getRaces({ sessionKey: idSession }) as RaceItemType[];
   if (!race || race.length === 0) {
@@ -78,6 +80,16 @@ export default async function Session({
     const qs = fromParams.toString();
     if (qs) backHref = `/?${qs}`;
   }
+
+  // Tab links keep every other param (notably `from`) so the back link survives switching.
+  const tabHref = (tab: number) => {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(searchParamsAwaited ?? {})) {
+      if (typeof v === "string") params.set(k, v);
+    }
+    params.set("selectedTab", String(tab));
+    return `?${params.toString()}`;
+  };
 
   return (
     <section>
@@ -106,35 +118,44 @@ export default async function Session({
       />
       <Link
         href={backHref}
-        className="inline-flex items-center gap-2 mb-4 font-data text-[10px] tracking-[0.25em] uppercase text-muted hover:text-f1red transition-colors duration-200"
+        className="mb-6 inline-flex items-center gap-2 text-ink-soft hover:text-ink"
       >
-        ◀ Sessions
+        <svg aria-hidden="true" viewBox="0 0 12 12" className="h-3 w-3">
+          <path d="M8 2L4 6l4 4" fill="none" stroke="currentColor" strokeWidth="1.75" />
+        </svg>
+        All sessions
       </Link>
 
-      <SessionHeader race={race[0]} />
+      <SessionHeader race={race[0]} live={isLiveMode}>
+        <Suspense fallback={<div className="mt-8 h-[5.5rem] animate-pulse bg-slab motion-reduce:animate-none" />}>
+          <FlagStrip session={race[0]} live={isLiveMode} />
+        </Suspense>
+      </SessionHeader>
 
-      <Suspense
-        fallback={
-          <div className="h-12 bg-carbon-mid border-b border-carbon-border animate-pulse mb-8" />
-        }
-      >
-        <Tabs />
-      </Suspense>
+      <div className="mb-6">
+        <SegmentedLinks
+          label="Session data"
+          showLabel={false}
+          items={TABS.map((label, i) => ({
+            label,
+            href: tabHref(i + 1),
+            active: selectedTab === i + 1,
+          }))}
+        />
+      </div>
 
       <div key={selectedTab} className="tab-fade-in">
         <Suspense
           fallback={
-            <div className="space-y-3">
+            <div className="space-y-2" role="status">
+              <span className="sr-only">Loading</span>
               {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-12 bg-carbon-light border-l-[3px] border-carbon-border animate-pulse"
-                />
+                <div key={i} className="h-11 animate-pulse bg-slab motion-reduce:animate-none" />
               ))}
             </div>
           }
         >
-          {TabContent(idSession, isLiveMode)[selectedTab]}
+          {TabContent(race[0], isLiveMode)[selectedTab]}
         </Suspense>
       </div>
     </section>

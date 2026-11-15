@@ -221,6 +221,13 @@ describe("getRaces", () => {
       expect(calledUrl).toContain("session_key=9507");
     });
 
+    it("does not restrict a session lookup to the current year", async () => {
+      await getRaces({ sessionKey: "9507" });
+
+      const calledUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(calledUrl).not.toContain("year=");
+    });
+
     it("uses a sessionKey-specific cache key", async () => {
       await getRaces({ sessionKey: "9507" });
 

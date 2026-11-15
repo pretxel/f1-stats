@@ -1,7 +1,5 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
-
 export const alt = "F1 Stats — Session Detail";
 export const size = {
   width: 1200,
@@ -56,104 +54,28 @@ export default async function Image({
     (
       <div
         style={{
-          background: "#0C0C0E",
+          background: "#DADDD8",
+          color: "#12324A",
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-end",
-          padding: "64px",
-          position: "relative",
+          justifyContent: "space-between",
+          padding: "72px",
         }}
       >
-        {/* Red top stripe */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "6px",
-            background: "#E10600",
-          }}
-        />
-        {/* Left accent */}
-        <div
-          style={{
-            position: "absolute",
-            top: "80px",
-            left: 0,
-            bottom: "80px",
-            width: "4px",
-            background: "#E10600",
-          }}
-        />
-        {/* Session type badge */}
-        {sessionType && (
-          <div
-            style={{
-              position: "absolute",
-              top: "64px",
-              right: "64px",
-              background: "#1C1C22",
-              border: "1px solid #2A2A32",
-              padding: "8px 20px",
-              fontSize: "16px",
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-              color: "#8B8B9A",
-              fontFamily: "monospace",
-              display: "flex",
-            }}
-          >
-            {sessionType}
-          </div>
-        )}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px",
-            paddingLeft: "24px",
-          }}
-        >
-          {countryName && (
-            <div
-              style={{
-                fontSize: "18px",
-                letterSpacing: "0.4em",
-                textTransform: "uppercase",
-                color: "#8B8B9A",
-                fontFamily: "monospace",
-              }}
-            >
-              {countryName}
-            </div>
-          )}
-          <div
-            style={{
-              fontSize: "80px",
-              fontWeight: 800,
-              color: "#F0F0F0",
-              lineHeight: 1,
-              letterSpacing: "-0.02em",
-              fontFamily: "sans-serif",
-            }}
-          >
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 30, color: "#46596A" }}>
+          <span>{countryName}</span>
+          <span>F1 Stats</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", fontSize: 120, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.03em" }}>
             {circuitName}
           </div>
-          {dateStr && (
-            <div
-              style={{
-                fontSize: "24px",
-                color: "#8B8B9A",
-                fontFamily: "monospace",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {dateStr}
-            </div>
-          )}
+          <div style={{ display: "flex", marginTop: 20, fontSize: 40, color: "#46596A" }}>
+            {[sessionType, dateStr].filter(Boolean).join(", ")}
+          </div>
+          <div style={{ display: "flex", marginTop: 40, height: 14, background: "#12324A" }} />
         </div>
       </div>
     ),

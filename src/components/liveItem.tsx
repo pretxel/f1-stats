@@ -1,7 +1,6 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 interface LiveItemProps {
   isLiveFetching?: boolean;
@@ -12,29 +11,20 @@ const FETCH_INTERVAL = 5000;
 export default function LiveItem({ isLiveFetching }: LiveItemProps) {
   const router = useRouter();
 
-  const apiCall = async (router: AppRouterInstance) => {
-    router.refresh();
-  };
-
   useEffect(() => {
-    if (isLiveFetching) {
-      const id = setInterval(() => apiCall(router), FETCH_INTERVAL);
-      return () => clearInterval(id);
-    }
+    if (!isLiveFetching) return;
+    const id = setInterval(() => router.refresh(), FETCH_INTERVAL);
+    return () => clearInterval(id);
   }, [router, isLiveFetching]);
 
   return (
-    <div role="status" aria-live="polite" aria-atomic="true">
-      <span className="sr-only">Live session — data refreshes automatically</span>
-      <div className="flex items-center gap-1.5">
-        <span className="relative flex h-2 w-2 flex-none">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-f1red opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-f1red" />
-        </span>
-        <span className="font-data text-[10px] font-bold tracking-[0.25em] uppercase text-f1red">
-          LIVE
-        </span>
-      </div>
-    </div>
+    <span role="status" className="inline-flex items-center gap-2">
+      <span
+        aria-hidden="true"
+        className="live-pulse inline-block h-2.5 w-2.5 flex-none rounded-full bg-flag-green ring-1 ring-ink"
+      />
+      <span className="text-label font-semibold text-ink">Live</span>
+      {isLiveFetching && <span className="sr-only">, updates every few seconds</span>}
+    </span>
   );
 }

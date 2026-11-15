@@ -111,22 +111,20 @@ Page (Server Component)
 Fetch data, render HTML on server. Located in `src/app/` and most of `src/components/`.
 
 Key server components:
-- `raceItem.tsx` — race card, async winner data fetch
-- `raceControl.tsx` — fetches + renders race control timeline
-- `pitstops.tsx` — fetches + renders pit stop table
+- `weekendGroup.tsx` / `sessionRow.tsx` — home listing grouped by race weekend
+- `winnerLabel.tsx` — async winner lookup (featured weekend only, OpenF1 allows 30 req/min)
+- `flagStrip.tsx` — track-status strip in the session header, built by `buildFlagStrip()`
+- `raceControl.tsx` / `raceControlItem.tsx` — race control timeline with flag markers
+- `pitstops.tsx` / `pitstopItem.tsx` — pit stops ranked with proportional bars
+- `segmentedLinks.tsx` — link-based segmented control used for filters and tabs
 
 ### Client Components (`"use client"`)
 Only used for interactivity. Marked with `"use client"` at the top.
 
 | File | Purpose |
 |---|---|
-| `components/tabs.tsx` | Tab switcher (Race Control / Pit Stops) |
-| `components/tabRaces.tsx` | Session type filter buttons |
-| `components/raceControlItem.tsx` | Race control event with scroll animation |
-| `components/pitstopItem.tsx` | Pit stop row with scroll animation |
 | `components/liveItem.tsx` | Live badge + auto-refresh timer |
-| `components/buttonItem.tsx` | "Details" nav button |
-| `components/searchInput.tsx` | Search input (UI only, not wired) |
+| `components/searchInput.tsx` | Search input; writes `?query=`, filtering happens on the server |
 
 **Rule:** Keep client components minimal. Prefer server rendering. Only add `"use client"` when you need browser APIs, event handlers, or state.
 
@@ -186,7 +184,12 @@ All data access goes through service functions. Each service:
 
 | Function | File | Description |
 |---|---|---|
-| `orderRacesLastest()` | `orderRacesByLastest.ts` | Sort sessions by date, filter, limit |
+| `groupSessionsByWeekend()` | `groupSessionsByWeekend.ts` | Group sessions by `meeting_key` into race weekends |
+| `splitWeekends()` | `splitWeekends.ts` | Featured / coming up / earlier weekends |
+| `buildFlagStrip()` | `buildFlagStrip.ts` | Track-status periods from race control messages |
+| `classifyRaceControl()` | `classifyRaceControl.ts` | Flag/category → marker kind and label |
+| `rankPitstops()` | `rankPitstops.ts` | Sort drivers by pit time, bar percentages |
+| `formatTrackTime()` | `trackTime.ts` | Format times in circuit local time |
 | `orderRaceControl()` | `orderRaceControl.ts` | Sort race control events descending |
 | `adaptRaceControlToTimeline()` | `adaptRaceControlToTimeline.ts` | Transform events for timeline UI |
 | `adaptPitstops()` | `adaptPitstops.ts` | Group pit stops by driver, sum durations |
@@ -246,8 +249,11 @@ Test files live alongside source files with `.test.ts` suffix:
 
 - **Tailwind CSS** exclusively — no CSS modules, no styled-components
 - Combine classes with the `classNames()` utility from `src/utils/classNames.ts`
-- Tailwind content paths cover `src/pages/`, `src/components/`, `src/app/`
-- No custom theme extensions — use default Tailwind tokens
+- Tailwind content paths cover `src/pages/`, `src/components/`, `src/app/` (class strings in `src/utils/` are not scanned — keep them in `src/components/`, e.g. `flagStyles.ts`)
+- Design tokens in `tailwind.config.ts`: `concrete` (page), `slab` (raised surface), `ink`, `ink-soft`, `rule`, and `flag-*` colors. Flag colors are only for flag/track state, always outlined in `ink` and paired with a text label
+- Font: Archivo variable via `next/font`. Use `.wdth-expanded` for circuit/weekend names and `.wdth-condensed` (tabular figures) for times and durations; no monospace, no all-caps labels, nothing under 12px
+- Motion: only the live pulse and the tab fade, both inside `prefers-reduced-motion: no-preference`
+- Times are shown in circuit local time via `formatTrackTime()` (`src/utils/trackTime.ts`) using the session's `gmt_offset`
 
 ---
 

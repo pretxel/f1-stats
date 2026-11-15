@@ -1,70 +1,44 @@
-import Image from "next/image";
-import dayjs from "dayjs";
-import { findFlagUrlByIso3Code } from "country-flags-svg";
-const localizedFormat = require("dayjs/plugin/localizedFormat");
-dayjs.extend(localizedFormat);
+import CountryFlag from "./countryFlag";
 import { RaceItemType } from "@/types/RaceItemType";
-import { sessionTypeLabel } from "@/utils/sessionTypeLabels";
+import { formatTrackTime } from "@/utils/trackTime";
 import LiveItem from "./liveItem";
-import isLiveSessionNow from "@/utils/isLiveSessionNow";
 
-export default function SessionHeader({ race }: { race: RaceItemType }) {
-  const urlImage = findFlagUrlByIso3Code(race.country_code);
-  const isLive = isLiveSessionNow(
-    new Date(race.date_start),
-    new Date(race.date_end)
-  );
+type SessionHeaderProps = {
+  race: RaceItemType;
+  live: boolean;
+  children?: React.ReactNode;
+};
+
+export default function SessionHeader({ race, live, children }: SessionHeaderProps) {
+  const day = formatTrackTime(race.date_start, race.gmt_offset, "dddd D MMMM YYYY");
+  const from = formatTrackTime(race.date_start, race.gmt_offset, "HH:mm");
+  const to = formatTrackTime(race.date_end, race.gmt_offset, "HH:mm");
 
   return (
-    <header className="mb-8 bg-carbon-light stripe-left overflow-hidden">
-      <div className="flex flex-wrap items-start justify-between gap-4 p-6 pb-5">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="flex-none">
-            <Image
-              src={urlImage !== "" ? urlImage : "/European_version.png"}
-              alt={race.country_name}
-              width={56}
-              height={37}
-              className="object-cover w-[56px] h-[37px]"
-              style={{ imageRendering: "crisp-edges" }}
-            />
-          </div>
-          <div className="min-w-0">
-            <h1 className="font-display font-extrabold text-3xl italic uppercase tracking-wide text-chromium leading-tight truncate">
-              {race.circuit_short_name}
-            </h1>
-            <p className="font-data text-[10px] text-muted tracking-widest uppercase mt-1">
-              {race.location ?? race.country_name} · {race.country_name}
-            </p>
-          </div>
-        </div>
+    <header className="mb-10 border-b-2 border-ink pb-8">
+      <p className="flex items-center gap-2.5 text-ink-soft">
+        <CountryFlag code={race.country_code} />
+        {race.location}, {race.country_name}
+      </p>
 
-        <div className="flex flex-col items-end gap-2 flex-none">
-          <span className="font-data text-[10px] font-bold tracking-[0.2em] text-carbon bg-f1red px-2 py-0.5 uppercase">
-            {sessionTypeLabel(race.session_name)}
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <h1 className="wdth-expanded break-words text-[2.25rem] font-extrabold leading-none tracking-tight sm:text-[2.5rem]">
+          {race.circuit_short_name}
+          <span className="block text-xl font-semibold tracking-normal text-ink-soft sm:text-[1.5625rem]">
+            {race.session_name}
           </span>
-          {isLive && <LiveItem isLiveFetching={true} />}
-        </div>
+        </h1>
+        {live && <LiveItem isLiveFetching />}
       </div>
 
-      <div className="border-t border-carbon-border px-6 py-3 flex flex-wrap gap-x-10 gap-y-2">
-        <div className="flex items-center gap-3">
-          <span className="font-data text-[10px] tracking-[0.25em] uppercase text-muted">
-            Start
-          </span>
-          <span className="font-data text-xs text-chromium">
-            {dayjs(race.date_start).format("D MMM · HH:mm")}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="font-data text-[10px] tracking-[0.25em] uppercase text-muted">
-            End
-          </span>
-          <span className="font-data text-xs text-chromium">
-            {dayjs(race.date_end).format("D MMM · HH:mm")}
-          </span>
-        </div>
-      </div>
+      <p className="mt-3">
+        <time dateTime={new Date(race.date_start).toISOString()}>{day}</time>
+        <span className="wdth-condensed text-ink-soft">
+          , {from}–{to} local time
+        </span>
+      </p>
+
+      {children}
     </header>
   );
 }

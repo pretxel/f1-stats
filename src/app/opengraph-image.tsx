@@ -1,91 +1,37 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
-
 export const alt = "F1 Stats — Formula 1 Session Data";
-export const size = {
-  width: 1200,
-  height: 630,
-};
+export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+const FLAGS = ["#1F8A4C", "#1F8A4C", "#1F8A4C", "#E8892B", "#1F8A4C", "#D7261E", "#1F8A4C", "#1F8A4C"];
 
 export default async function Image() {
   return new ImageResponse(
     (
       <div
         style={{
-          background: "#0C0C0E",
+          background: "#DADDD8",
+          color: "#12324A",
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-end",
-          padding: "64px",
-          position: "relative",
+          justifyContent: "space-between",
+          padding: "72px",
         }}
       >
-        {/* Red top stripe */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "6px",
-            background: "#E10600",
-          }}
-        />
-        {/* Left red accent */}
-        <div
-          style={{
-            position: "absolute",
-            top: "80px",
-            left: 0,
-            bottom: "80px",
-            width: "4px",
-            background: "#E10600",
-          }}
-        />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px",
-            paddingLeft: "24px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "18px",
-              letterSpacing: "0.4em",
-              textTransform: "uppercase",
-              color: "#8B8B9A",
-              fontFamily: "monospace",
-            }}
-          >
-            FORMULA 1
-          </div>
-          <div
-            style={{
-              fontSize: "88px",
-              fontWeight: 800,
-              color: "#F0F0F0",
-              lineHeight: 1,
-              letterSpacing: "-0.02em",
-              fontFamily: "sans-serif",
-            }}
-          >
+        <div style={{ display: "flex", fontSize: 30, color: "#46596A" }}>
+          Race control and pit stops for every Formula 1 session
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", fontSize: 140, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.03em" }}>
             F1 Stats
           </div>
-          <div
-            style={{
-              fontSize: "28px",
-              color: "#8B8B9A",
-              fontFamily: "monospace",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Race control · Pit stops · Live sessions
+          <div style={{ display: "flex", marginTop: 40, height: 36, border: "3px solid #12324A" }}>
+            {FLAGS.map((c, i) => (
+              <div key={i} style={{ flex: i === 5 ? 0.6 : 1, background: c, borderRight: i < FLAGS.length - 1 ? "3px solid #12324A" : "none" }} />
+            ))}
           </div>
         </div>
       </div>

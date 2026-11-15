@@ -1,6 +1,7 @@
 import { getPitstops } from "@/services/pitstops";
-import ListPitstop from "./listPitstop";
 import adaptPitstops from "@/utils/adaptPitstops";
+import { rankPitstops } from "@/utils/rankPitstops";
+import PitstopItem from "./pitstopItem";
 import EmptyState from "./emptyState";
 
 export type PitStopProps = {
@@ -9,31 +10,27 @@ export type PitStopProps = {
 };
 
 export default async function PitStops(props: PitStopProps) {
-  const pitstops = await getPitstops(props.session_key);
-  const people = adaptPitstops(pitstops);
+  const ranked = rankPitstops(adaptPitstops(await getPitstops(props.session_key)));
 
-  if (people.length === 0) {
+  if (ranked.length === 0) {
     return (
-      <div className="max-w-2xl">
-        <EmptyState
-          title="No pit data"
-          detail="No pit stops recorded for this session."
-        />
-      </div>
+      <EmptyState
+        title="No pit stops"
+        detail="No driver has pitted in this session. Practice and qualifying sessions usually have none recorded."
+      />
     );
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="font-data text-[10px] tracking-[0.3em] uppercase text-muted">
-          Drivers
-        </span>
-        <span className="font-data text-[10px] text-muted-dark">
-          {people.length}
-        </span>
-      </div>
-      <ListPitstop people={people} />
-    </div>
+    <section aria-labelledby="pitstops-heading">
+      <h2 id="pitstops-heading" className="mb-3 text-label text-ink-soft">
+        Total time in the pit lane, shortest first
+      </h2>
+      <ol className="border-t border-ink">
+        {ranked.map((person) => (
+          <PitstopItem key={person.key} person={person} />
+        ))}
+      </ol>
+    </section>
   );
 }

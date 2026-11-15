@@ -4,68 +4,52 @@ import { RaceControlTypeItem } from "@/types/RaceControlItem";
 const makeItem = (
   message: string,
   date: string,
-  category: string = "Flag"
+  category: string = "Flag",
+  extra: Partial<RaceControlTypeItem> = {}
 ): RaceControlTypeItem => ({
   session_key: "9507",
   meeting_key: "1234",
   date: new Date(date),
   category,
   message,
+  ...extra,
 });
 
 describe("adaptRaceControlToTimeline", () => {
-  it("maps race control items to timeline format", () => {
-    const items = [makeItem("GREEN FLAG", "2024-03-02T14:05:00")];
-
-    const result = adaptRaceControlToTimeline(items);
-
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({
+  it("maps an event to time, kind, label and content", () => {
+    const [event] = adaptRaceControlToTimeline([
+      makeItem("RED FLAG", "2024-11-03T16:37:22Z", "Flag", { flag: "RED", scope: "Track", lap_number: 33 }),
+    ]);
+    expect(event).toMatchObject({
       id: 0,
-      content: "GREEN FLAG",
-      datetime: new Date("2024-03-02T14:05:00"),
-      href: "#",
-      iconBackground: "bg-gray-400",
+      content: "RED FLAG",
+      time: "16:37:22",
+      kind: "red",
+      label: "Red flag",
+      lap: 33,
+      datetime: new Date("2024-11-03T16:37:22Z"),
     });
-    // date should be a formatted string
-    expect(typeof result[0].date).toBe("string");
-    expect(result[0].date.length).toBeGreaterThan(0);
+  });
+
+  it("formats time in circuit local time when an offset is given", () => {
+    const [event] = adaptRaceControlToTimeline(
+      [makeItem("SAFETY CAR DEPLOYED", "2024-11-03T16:32:53Z", "SafetyCar")],
+      "-03:00:00"
+    );
+    expect(event.time).toBe("13:32:53");
+    expect(event.kind).toBe("sc");
   });
 
   it("assigns sequential ids starting from 0", () => {
-    const items = [
-      makeItem("GREEN FLAG", "2024-03-02T14:05:00"),
-      makeItem("SAFETY CAR", "2024-03-02T14:30:00"),
-      makeItem("SC IN", "2024-03-02T14:45:00"),
-    ];
-
-    const result = adaptRaceControlToTimeline(items);
-
-    expect(result[0].id).toBe(0);
-    expect(result[1].id).toBe(1);
-    expect(result[2].id).toBe(2);
-  });
-
-  it("preserves the message as content", () => {
-    const items = [
-      makeItem("SAFETY CAR DEPLOYED", "2024-03-02T14:30:00", "SafetyCar"),
-    ];
-
-    const result = adaptRaceControlToTimeline(items);
-
-    expect(result[0].content).toBe("SAFETY CAR DEPLOYED");
+    const result = adaptRaceControlToTimeline([
+      makeItem("A", "2024-03-02T14:05:00Z"),
+      makeItem("B", "2024-03-02T14:30:00Z"),
+      makeItem("C", "2024-03-02T14:45:00Z"),
+    ]);
+    expect(result.map((r) => r.id)).toEqual([0, 1, 2]);
   });
 
   it("returns an empty array for an empty input", () => {
     expect(adaptRaceControlToTimeline([])).toEqual([]);
-  });
-
-  it("preserves the original date object as datetime", () => {
-    const date = "2024-03-02T14:05:00";
-    const items = [makeItem("GREEN FLAG", date)];
-
-    const result = adaptRaceControlToTimeline(items);
-
-    expect(result[0].datetime).toEqual(new Date(date));
   });
 });

@@ -1,5 +1,9 @@
 import type { Config } from "tailwindcss";
 
+// Contrast (WCAG): ink on concrete 9.69, ink on slab 11.58,
+// ink-soft on concrete 5.29, ink-soft on slab 6.32.
+// Flag colors are fills only, always outlined in ink and labelled with text
+// (yellow 1.21 and sc 1.9 against concrete would fail as standalone graphics).
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,34 +13,27 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        f1red: "#E10600",
-        "f1red-dark": "#B00400",
-        carbon: "#0C0C0E",
-        "carbon-light": "#141418",
-        "carbon-mid": "#1C1C22",
-        "carbon-border": "#2A2A32",
-        chromium: "#F0F0F0",
-        muted: "#8B8B9A",
-        "muted-dark": "#55555F",
-        gold: "#FFD700",
+        concrete: "#DADDD8",
+        slab: "#EEF0EC",
+        ink: "#12324A",
+        "ink-soft": "#46596A",
+        rule: "#B9BEB7",
+        flag: {
+          green: "#1F8A4C",
+          yellow: "#F2C40F",
+          red: "#D7261E",
+          blue: "#1D6FD1",
+          sc: "#E8892B",
+        },
       },
       fontFamily: {
-        display: ["var(--font-barlow)", "sans-serif"],
-        data: ["var(--font-mono)", "monospace"],
+        sans: ["var(--font-archivo)", "system-ui", "sans-serif"],
       },
-      keyframes: {
-        "slide-up": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        "fade-in": {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
+      fontSize: {
+        label: ["0.8125rem", { lineHeight: "1.25rem" }],
       },
-      animation: {
-        "slide-up": "slide-up 0.5s ease-out forwards",
-        "fade-in": "fade-in 0.4s ease-out forwards",
+      maxWidth: {
+        page: "72rem",
       },
     },
   },

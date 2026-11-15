@@ -16,9 +16,9 @@ export const getRaces = async (params: GetRaceType) => {
   const redis = Redis.fromEnv();
 
   const SERVICE = "sessions";
-  let QUERIES = `?year=${year}`;
+  // A session key is unique across seasons; adding the year would 404 older sessions.
+  let QUERIES = params.sessionKey ? `?session_key=${params.sessionKey}` : `?year=${year}`;
   if (params.sessionKey) {
-    QUERIES += "&session_key=" + params.sessionKey;
     key = `racesResponse_session_key_${params.sessionKey}`
   }
   if (params.sessionType) {

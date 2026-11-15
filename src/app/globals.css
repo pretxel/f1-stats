@@ -3,80 +3,89 @@
 @tailwind utilities;
 
 :root {
-  --f1red: #e10600;
-  --f1red-dark: #b00400;
-  --carbon: #0c0c0e;
-  --carbon-light: #141418;
-  --carbon-mid: #1c1c22;
-  --carbon-border: #2a2a32;
-  --chromium: #f0f0f0;
-  --muted: #8b8b9a;
-  --gold: #ffd700;
+  --concrete: #daddd8;
+  --slab: #eef0ec;
+  --ink: #12324a;
+  --ink-soft: #46596a;
+  --rule: #b9beb7;
+  --flag-green: #1f8a4c;
+  --flag-yellow: #f2c40f;
+  --flag-red: #d7261e;
+  --flag-blue: #1d6fd1;
+  --flag-sc: #e8892b;
 }
 
 html,
 body {
-  background-color: var(--carbon);
-  color: var(--chromium);
+  background-color: var(--concrete);
+  color: var(--ink);
 }
 
-/* Grain texture overlay */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.025;
-  pointer-events: none;
-  z-index: 9998;
+body {
+  font-variant-numeric: lining-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Top-left red atmosphere */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(
-    ellipse at 0% 0%,
-    rgba(225, 6, 0, 0.07) 0%,
-    transparent 65%
-  );
-  pointer-events: none;
-  z-index: 0;
+/* Keyboard focus: one style everywhere */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 3px;
-  height: 3px;
+/* <details> marker hidden; rows draw their own disclosure glyph */
+summary {
+  list-style: none;
 }
-::-webkit-scrollbar-track {
-  background: var(--carbon);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--f1red);
+summary::-webkit-details-marker {
+  display: none;
 }
 
-/* Motion — skipped entirely under prefers-reduced-motion */
-@media (prefers-reduced-motion: no-preference) {
-  .fade-up {
-    opacity: 0;
-    animation: fade-up 0.5s ease-out forwards;
-    /* stagger by --stagger-i, capped at 9 steps (~540ms) */
-    animation-delay: calc(min(var(--stagger-i, 0), 9) * 60ms);
+@layer utilities {
+  /* Archivo width axis: expanded for places, condensed for numbers */
+  .wdth-expanded {
+    font-variation-settings: "wdth" 125;
+  }
+  .wdth-condensed {
+    font-variation-settings: "wdth" 75;
+    font-variant-numeric: tabular-nums;
   }
 
-  @keyframes fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Chequered flag fill */
+  .chequered {
+    background-color: #fff;
+    background-image: repeating-conic-gradient(
+      var(--ink) 0% 25%,
+      #fff 0% 50%
+    );
+    background-size: 8px 8px;
+  }
+
+  /* Neutral "not started / not running" fill */
+  .hatched {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--rule) 0 2px,
+      transparent 2px 6px
+    );
+  }
+}
+
+/* Motion — only the live pulse and the tab swap; none under reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  .live-pulse {
+    animation: live-pulse 1.6s ease-out infinite;
+  }
+
+  @keyframes live-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(31, 138, 76, 0.55);
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+    100% {
+      box-shadow: 0 0 0 8px rgba(31, 138, 76, 0);
     }
   }
 
@@ -91,21 +100,5 @@ body::before {
     to {
       opacity: 1;
     }
-  }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  /* Left red racing stripe */
-  .stripe-left {
-    border-left: 3px solid var(--f1red);
-  }
-
-  /* Subtle top accent line */
-  .stripe-top {
-    border-top: 2px solid var(--f1red);
   }
 }

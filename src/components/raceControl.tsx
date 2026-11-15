@@ -1,55 +1,38 @@
 import { getRaceControlBySession } from "@/services/raceControl";
-import RaceControlItem from "./raceControlItem";
 import { orderRaceControl } from "@/utils/orderRaceControl";
 import adaptRaceControlToTimeline from "@/utils/adaptRaceControlToTimeline";
+import RaceControlItem from "./raceControlItem";
 import EmptyState from "./emptyState";
 
 export type RaceControlProp = {
   session_key: string;
+  gmt_offset?: string;
   liveMode: boolean;
 };
 
-const timeLineAdaptedRequest = async (sessionKey: string) => {
-  const raceControlRequested = await getRaceControlBySession(sessionKey);
-  const raceControlSorted = orderRaceControl(raceControlRequested);
-  const timeLineAdapted = adaptRaceControlToTimeline(raceControlSorted);
-  return timeLineAdapted;
-};
+export default async function RaceControl({ session_key, gmt_offset }: RaceControlProp) {
+  const events = orderRaceControl(await getRaceControlBySession(session_key));
+  const timeline = adaptRaceControlToTimeline(events, gmt_offset);
 
-export default async function RaceControl(props: RaceControlProp) {
-  const timeLineAdapted = await timeLineAdaptedRequest(props.session_key);
-
-  if (timeLineAdapted.length === 0) {
+  if (timeline.length === 0) {
     return (
-      <div className="max-w-2xl">
-        <EmptyState
-          title="No events"
-          detail="Race control has no messages for this session."
-        />
-      </div>
+      <EmptyState
+        title="No messages yet"
+        detail="Race control hasn’t published anything for this session. Messages appear here as soon as they are issued."
+      />
     );
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="font-data text-[10px] tracking-[0.3em] uppercase text-muted">
-          Events
-        </span>
-        <span className="font-data text-[10px] text-muted-dark">
-          {timeLineAdapted.length}
-        </span>
-      </div>
-      <ul role="list">
-        {timeLineAdapted.map((event, eventIdx) => (
-          <RaceControlItem
-            key={event.id}
-            event={event}
-            eventIdx={eventIdx}
-            timeLineAdapted={timeLineAdapted}
-          />
+    <section aria-labelledby="race-control-heading">
+      <h2 id="race-control-heading" className="mb-3 text-label text-ink-soft">
+        {timeline.length} messages, newest first
+      </h2>
+      <ol className="border-t border-ink">
+        {timeline.map((event) => (
+          <RaceControlItem key={event.id} event={event} />
         ))}
-      </ul>
-    </div>
+      </ol>
+    </section>
   );
 }

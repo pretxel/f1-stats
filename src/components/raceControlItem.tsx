@@ -1,54 +1,20 @@
-"use client";
-import { Ref, useRef } from "react";
-import { useIsVisible } from "@/hooks/useIsVisible";
+import { TimelineEvent } from "@/utils/adaptRaceControlToTimeline";
+import { sentenceCase } from "@/utils/sentenceCase";
+import FlagMarker from "./flagMarker";
 
-export default function RaceControlItem({
-  event,
-  eventIdx,
-  timeLineAdapted,
-}: any) {
-  const ref: Ref<HTMLLIElement> = useRef(null);
-  const isVisible = useIsVisible(ref);
-  const isLast = eventIdx === timeLineAdapted.length - 1;
-
+export default function RaceControlItem({ event }: { event: TimelineEvent }) {
   return (
-    <li
-      ref={ref}
-      className={`transition-all duration-700 ease-out ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
-      }`}
-    >
-      <div className="relative pb-6">
-        {/* Vertical connector line */}
-        {!isLast && (
-          <span
-            className="absolute left-[9px] top-5 bottom-0 w-px bg-carbon-border"
-            aria-hidden="true"
-          />
-        )}
-
-        <div className="relative flex gap-4">
-          {/* Dot indicator */}
-          <div className="flex-none mt-1">
-            <span className="flex h-[18px] w-[18px] items-center justify-center bg-carbon-mid border border-carbon-border">
-              <span className="h-1.5 w-1.5 rounded-full bg-f1red" />
-            </span>
-          </div>
-
-          {/* Content */}
-          <div className="flex min-w-0 flex-1 items-start justify-between gap-4 pt-0.5">
-            <p className="font-data text-xs text-chromium leading-relaxed">
-              {event.content}
-            </p>
-            <time
-              dateTime={event.datetime?.toString()}
-              className="font-data text-[10px] text-muted tracking-wide whitespace-nowrap flex-none"
-            >
-              {event.date}
-            </time>
-          </div>
-        </div>
-      </div>
+    <li className="grid grid-cols-[5rem_1fr] gap-x-4 gap-y-1 border-b border-rule py-3 sm:grid-cols-[5.5rem_13rem_1fr]">
+      <p className="wdth-condensed pt-px text-ink-soft">
+        <time dateTime={new Date(event.datetime).toISOString()}>{event.time}</time>
+        {event.lap ? <span className="block text-label">Lap {event.lap}</span> : null}
+      </p>
+      <span>
+        <FlagMarker kind={event.kind} label={event.label} />
+      </span>
+      <p className="col-start-2 max-w-[65ch] sm:col-start-auto">
+        {sentenceCase(event.content)}
+      </p>
     </li>
   );
 }

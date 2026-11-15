@@ -4,4 +4,9 @@ export type RaceControlTypeItem = {
   date: Date;
   category: string;
   message: string;
+  flag?: string | null;
+  scope?: string | null;
+  sector?: number | null;
+  lap_number?: number | null;
+  driver_number?: number | null;
 };

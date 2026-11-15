@@ -21,31 +21,18 @@ export default function SearchInput() {
   };
 
   return (
-    <div className="relative w-full max-w-xl">
-      <svg
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        aria-hidden="true"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-        />
-      </svg>
+    <div className="w-full max-w-sm">
+      <label htmlFor="query" className="mb-2 block text-label text-ink-soft">
+        Search circuits
+      </label>
       <input
-        placeholder="Search circuit, country, location..."
-        className="w-full h-9 bg-carbon-light border border-carbon-border text-chromium font-data text-xs tracking-wide pl-10 pr-4 outline-none placeholder:text-muted focus:border-f1red transition-colors duration-200"
-        type="search"
-        name="query"
         id="query"
+        name="query"
+        type="search"
         value={value}
         onChange={(e) => updateQuery(e.target.value)}
-        aria-label="Search sessions"
+        placeholder="Monza, Japan, Las Vegas…"
+        className="h-[2.375rem] w-full rounded-[3px] border border-ink bg-slab px-3 text-ink placeholder:text-ink-soft"
       />
     </div>
   );
