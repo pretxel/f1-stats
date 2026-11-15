@@ -3,6 +3,7 @@ import { Archivo } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { VercelToolbar } from "@vercel/toolbar/next";
+import { SITE_URL } from "@/utils/constants";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -12,6 +13,7 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "F1 Stats — Formula 1 Session Data",
   description:
     "Race control timelines, pit stop durations, and live session tracking for every Formula 1 session.",
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
     title: "F1 Stats — Formula 1 Session Data",
     description:
       "Race control timelines, pit stop durations, and live session tracking for every Formula 1 session.",
-    url: "https://f1.edselserrano.com",
+    url: SITE_URL,
   },
 };
 

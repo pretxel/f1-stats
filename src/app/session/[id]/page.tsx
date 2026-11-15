@@ -10,6 +10,7 @@ import { getRaces } from "@/services/races";
 import isLiveSessionNow from "@/utils/isLiveSessionNow";
 import { jsonLdSafe } from "@/utils/jsonLdSafe";
 import type { RaceItemType } from "@/types/RaceItemType";
+import { SITE_URL } from "@/utils/constants";
 
 interface TabJSXElement {
   [key: number]: React.JSX.Element;
@@ -42,7 +43,7 @@ export async function generateMetadata({
         title,
         description,
         type: "website",
-        url: `https://f1.edselserrano.com/session/${id}`,
+        url: `${SITE_URL}/session/${id}`,
       },
     };
   } catch {
