@@ -27,7 +27,7 @@ const mockRaces = [
 ];
 
 function getRedisMock() {
-  return Redis.fromEnv() as {
+  return Redis.fromEnv() as unknown as {
     get: jest.Mock;
     set: jest.Mock;
     eval: jest.Mock;
